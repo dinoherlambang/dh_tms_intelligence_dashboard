@@ -6,26 +6,47 @@ class DhTmsDashboard(models.TransientModel):
     _description = 'TMS Fleet & Tire Intelligence Dashboard'
 
     @api.model
-    def get_intelligence_dashboard_data(self, domain_filter=None):
+    def get_intelligence_dashboard_data(self, unit_id=None, truck_type_id=None):
         """
-        Returns real-time intelligence metrics for the TMS Fleet & Tire Dashboard.
-        Zero hardcoded dummy data.
+        Returns real-time intelligence metrics for the TMS Fleet & Tire Dashboard
+        with dynamic hub/vehicle type filtering, predictive lifespan forecaster,
+        automated rotation recommendations, and drilldown targets.
         """
         Vehicle = self.env['dh.vehicle']
         Lot = self.env['stock.production.lot']
+        OperatingUnit = self.env['operating.unit'] if 'operating.unit' in self.env else False
+        TruckType = self.env['dh.truck.type']
 
-        # 1. Fetch Vehicle Fleet Overview
-        vehicles = Vehicle.search([])
+        # 1. Available Filter Dropdown Options
+        operating_units = []
+        if OperatingUnit:
+            ou_records = OperatingUnit.search([])
+            operating_units = [{'id': ou.id, 'name': ou.name} for ou in ou_records]
+
+        tt_records = TruckType.search([])
+        truck_types = [{'id': tt.id, 'name': tt.name} for tt in tt_records]
+
+        # 2. Filter Vehicles based on Location (Operating Unit) / Truck Type selection
+        vehicle_domain = []
+        if unit_id:
+            vehicle_domain.append(('location_id', '=', int(unit_id)))
+        if truck_type_id:
+            vehicle_domain.append(('truck_type_id', '=', int(truck_type_id)))
+
+        vehicles = Vehicle.search(vehicle_domain)
         total_vehicles = len(vehicles)
         active_vehicles = len(vehicles.filtered(lambda v: v.active if hasattr(v, 'active') else True))
-        
-        # 2. Vehicle Quick-Grid Data
+
+        # 3. Vehicle Quick-Grid & Telemetry Analytics
         vehicle_grid = []
         total_mounted_tires = 0
         total_expected_tires = 0
         critical_tires_count = 0
         warning_tires_count = 0
         normal_tires_count = 0
+
+        rotation_recommendations = []
+        replacement_forecast = []
 
         for v in vehicles:
             try:
@@ -41,22 +62,62 @@ class DhTmsDashboard(models.TransientModel):
             v_warning = 0
             v_normal = 0
 
+            rtd_by_pos = {}
+
             for code, t_info in tires_dict.items():
                 alert = t_info.get('alert_state', 'normal')
+                gr1 = float(t_info.get('gr1') or 0.0)
+                gr2 = float(t_info.get('gr2') or 0.0)
+                gr3 = float(t_info.get('gr3') or 0.0)
+                gr4 = float(t_info.get('gr4') or 0.0)
+                
+                grooves = [g for g in [gr1, gr2, gr3, gr4] if g > 0]
+                min_rtd = min(grooves) if grooves else 0.0
+                rtd_by_pos[str(code)] = min_rtd
+
                 if alert == 'critical':
                     v_critical += 1
                     critical_tires_count += 1
+                    replacement_forecast.append({
+                        'vehicle_id': v.id,
+                        'vehicle_name': v.name,
+                        'pos_code': code,
+                        'serial_number': t_info.get('serial_number', '-'),
+                        'rtd': min_rtd,
+                        'est_days': 'Immediate (< 7 Days)',
+                        'urgency': 'critical'
+                    })
                 elif alert == 'warning':
                     v_warning += 1
                     warning_tires_count += 1
+                    replacement_forecast.append({
+                        'vehicle_id': v.id,
+                        'vehicle_name': v.name,
+                        'pos_code': code,
+                        'serial_number': t_info.get('serial_number', '-'),
+                        'rtd': min_rtd,
+                        'est_days': '15 - 30 Days',
+                        'urgency': 'warning'
+                    })
                 else:
                     v_normal += 1
                     normal_tires_count += 1
 
+            # Check Steer Pair Variance (P1 vs P2)
+            p1_rtd = rtd_by_pos.get('1') or rtd_by_pos.get('P1') or 0.0
+            p2_rtd = rtd_by_pos.get('2') or rtd_by_pos.get('P2') or 0.0
+            if p1_rtd > 0 and p2_rtd > 0 and abs(p1_rtd - p2_rtd) >= 1.5:
+                rotation_recommendations.append({
+                    'vehicle_id': v.id,
+                    'vehicle_name': v.name,
+                    'reason': _('Steer axle RTD variance >= 1.5 mm (P1: %.1f mm vs P2: %.1f mm)') % (p1_rtd, p2_rtd),
+                    'action': _('Swap Steer Tires P1 <-> P2 to equalize tread wear'),
+                })
+
             total_mounted_tires += mounted_count
             total_expected_tires += expected_count
 
-            # Overall vehicle health badge status
+            # Overall vehicle health status
             if v_critical > 0:
                 health_state = 'critical'
             elif v_warning > 0:
@@ -80,7 +141,7 @@ class DhTmsDashboard(models.TransientModel):
                 'warning_count': v_warning,
             })
 
-        # 3. Actionable Alert Queue (100% Real Database Alerts)
+        # 4. Priority Alert Queue
         alert_queue = []
         for v_item in vehicle_grid:
             if v_item['critical_count'] > 0:
@@ -88,8 +149,8 @@ class DhTmsDashboard(models.TransientModel):
                     'severity': 'critical',
                     'vehicle_id': v_item['id'],
                     'vehicle_name': v_item['name'],
-                    'title': _('Critical Tire Wear Alert'),
-                    'message': _('Vehicle %s has %d tire(s) with critical tread depth (RTD <= 3.0 mm). Immediate replacement required.') % (v_item['name'], v_item['critical_count']),
+                    'title': _('Critical Tire Replacement Needed'),
+                    'message': _('Vehicle %s has %d tire(s) with RTD <= 3.0 mm. Order replacement stock.') % (v_item['name'], v_item['critical_count']),
                 })
             elif v_item['warning_count'] > 0:
                 alert_queue.append({
@@ -97,10 +158,10 @@ class DhTmsDashboard(models.TransientModel):
                     'vehicle_id': v_item['id'],
                     'vehicle_name': v_item['name'],
                     'title': _('Tire Wear Warning'),
-                    'message': _('Vehicle %s has %d tire(s) nearing wear limit (RTD 3.1 - 6.0 mm). Schedule rotation.') % (v_item['name'], v_item['warning_count']),
+                    'message': _('Vehicle %s has %d tire(s) nearing limit (RTD 3.1 - 6.0 mm).') % (v_item['name'], v_item['warning_count']),
                 })
 
-        # 4. Dynamic Brand Performance Benchmarking from Real DB Records
+        # 5. Dynamic Brand Performance Benchmarking
         tire_lots = Lot.search([('is_tire', '=', True)])
         brand_data = {}
         total_fleet_cost = 0.0
@@ -108,11 +169,14 @@ class DhTmsDashboard(models.TransientModel):
 
         for lot in tire_lots:
             b_name = '-'
+            brand_obj_id = False
             if hasattr(lot, 'product_id') and lot.product_id:
                 if hasattr(lot.product_id, 'product_brand_id') and lot.product_id.product_brand_id:
                     b_name = lot.product_id.product_brand_id.name
+                    brand_obj_id = lot.product_id.product_brand_id.id
                 elif hasattr(lot.product_id, 'brand_id') and lot.product_id.brand_id:
                     b_name = lot.product_id.brand_id.name
+                    brand_obj_id = lot.product_id.brand_id.id
                 elif lot.product_id.name:
                     b_name = lot.product_id.name
 
@@ -123,32 +187,54 @@ class DhTmsDashboard(models.TransientModel):
             total_fleet_km += km
 
             if b_name not in brand_data:
-                brand_data[b_name] = {'count': 0, 'total_cost': 0.0, 'total_km': 0.0}
+                brand_data[b_name] = {'count': 0, 'total_cost': 0.0, 'total_km': 0.0, 'brand_id': brand_obj_id}
             
             brand_data[b_name]['count'] += 1
             brand_data[b_name]['total_cost'] += cost
             brand_data[b_name]['total_km'] += km
 
         brand_performance = []
+        max_brand_km = 1.0
         for b_name, b_info in brand_data.items():
             avg_km = round(b_info['total_km'] / b_info['count'], 1) if b_info['count'] > 0 else 0.0
             cpkm = round(b_info['total_cost'] / b_info['total_km'], 2) if b_info['total_km'] > 0 else 0.0
+            if avg_km > max_brand_km:
+                max_brand_km = avg_km
             brand_performance.append({
                 'brand': b_name,
+                'brand_id': b_info['brand_id'],
+                'count': b_info['count'],
                 'avg_km': avg_km,
                 'cost_per_km': f"Rp {cpkm} / km" if cpkm > 0 else "-",
                 'rating': "100%" if cpkm > 0 else "-",
             })
 
-        # Calculate Fleet Average CPKM
+        for b in brand_performance:
+            b['bar_pct'] = round((b['avg_km'] / max_brand_km * 100), 1) if max_brand_km > 0 else 0.0
+
         if total_fleet_km > 0 and total_fleet_cost > 0:
             avg_fleet_cpkm = f"Rp {round(total_fleet_cost / total_fleet_km, 2)} / km"
         else:
             avg_fleet_cpkm = "-"
 
-        # 5. Operational Ratios
+        # 6. Donut Geometry Calculations
         total_tires_tracked = total_mounted_tires if total_mounted_tires > 0 else 0
+        normal_pct = round(normal_tires_count / total_tires_tracked * 100, 1) if total_tires_tracked > 0 else 0.0
+        warning_pct = round(warning_tires_count / total_tires_tracked * 100, 1) if total_tires_tracked > 0 else 0.0
+        critical_pct = round(critical_tires_count / total_tires_tracked * 100, 1) if total_tires_tracked > 0 else 0.0
+
+        circ = 251.32
+        normal_dash = round((normal_pct / 100.0) * circ, 2)
+        warning_dash = round((warning_pct / 100.0) * circ, 2)
+        critical_dash = round((critical_pct / 100.0) * circ, 2)
+
         return {
+            'filters': {
+                'operating_units': operating_units,
+                'truck_types': truck_types,
+                'selected_unit_id': unit_id,
+                'selected_truck_type_id': truck_type_id,
+            },
             'kpis': {
                 'total_vehicles': total_vehicles,
                 'active_vehicles': active_vehicles,
@@ -161,11 +247,17 @@ class DhTmsDashboard(models.TransientModel):
                 'avg_cpkm': avg_fleet_cpkm,
             },
             'wear_distribution': {
-                'normal_pct': round(normal_tires_count / total_tires_tracked * 100, 1) if total_tires_tracked > 0 else 0.0,
-                'warning_pct': round(warning_tires_count / total_tires_tracked * 100, 1) if total_tires_tracked > 0 else 0.0,
-                'critical_pct': round(critical_tires_count / total_tires_tracked * 100, 1) if total_tires_tracked > 0 else 0.0,
+                'normal_pct': normal_pct,
+                'warning_pct': warning_pct,
+                'critical_pct': critical_pct,
+                'normal_dash': normal_dash,
+                'warning_dash': warning_dash,
+                'critical_dash': critical_dash,
+                'circumference': circ,
             },
             'vehicle_grid': vehicle_grid,
             'alert_queue': alert_queue[:10],
             'brand_performance': brand_performance,
+            'rotation_recommendations': rotation_recommendations[:5],
+            'replacement_forecast': replacement_forecast[:5],
         }

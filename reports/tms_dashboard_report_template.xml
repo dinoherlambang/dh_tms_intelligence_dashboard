@@ -1,0 +1,116 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- Register Executive PDF Summary Report Action -->
+    <record id="action_report_tms_dashboard_executive" model="ir.actions.report">
+        <field name="name">Executive Fleet &amp; Tire Intelligence Summary</field>
+        <field name="model">dh.tms.dashboard</field>
+        <field name="report_type">qweb-pdf</field>
+        <field name="report_name">dh_tms_intellegence_dashboard.report_tms_dashboard_executive</field>
+        <field name="report_file">dh_tms_intellegence_dashboard.report_tms_dashboard_executive</field>
+        <field name="print_report_name">'TMS_Executive_Fleet_Summary'</field>
+    </record>
+
+    <!-- QWeb PDF Template -->
+    <template id="report_tms_dashboard_executive">
+        <t t-call="web.html_container">
+            <t t-foreach="docs" t-as="doc">
+                <div class="page" style="font-family: Arial, Helvetica, sans-serif; font-size: 10px; color: #222222; padding: 15px;">
+                    <t t-set="data" t-value="doc.get_intelligence_dashboard_data()"/>
+                    <t t-set="kpis" t-value="data.get('kpis', {})"/>
+
+                    <!-- Header -->
+                    <table style="width: 100%; border-bottom: 2px solid #1e62d0; margin-bottom: 15px; padding-bottom: 6px;">
+                        <tr>
+                            <td style="border: none; padding: 0; vertical-align: middle;">
+                                <h2 style="color: #1e62d0; font-weight: bold; margin: 0; font-size: 16px;">Executive Fleet &amp; Tire Intelligence Report</h2>
+                                <div style="font-size: 11px; color: #555555; margin-top: 3px;">
+                                    Comprehensive Fleet Readiness, Wear Risk Heatmap &amp; Maintenance Forecast
+                                </div>
+                            </td>
+                            <td style="border: none; padding: 0; text-align: right; vertical-align: middle; font-size: 10px; color: #666666;">
+                                <div>Date: <strong><t t-esc="context_timestamp(datetime.datetime.now()).strftime('%Y-%m-%d %H:%M')"/></strong></div>
+                            </td>
+                        </tr>
+                    </table>
+
+                    <!-- Executive KPI Table -->
+                    <table style="width: 100%; border-collapse: collapse; margin-bottom: 15px; border: 1px solid #dddddd;">
+                        <thead style="background-color: #1e62d0; color: #ffffff;">
+                            <tr>
+                                <th style="padding: 6px;" class="text-center">Active Vehicles</th>
+                                <th style="padding: 6px;" class="text-center">Operational %</th>
+                                <th style="padding: 6px;" class="text-center">Mounted Tires</th>
+                                <th style="padding: 6px;" class="text-center">Critical Alerts</th>
+                                <th style="padding: 6px;" class="text-center">Average CPKM</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td style="padding: 8px; text-align: center; font-size: 12px; font-weight: bold;">
+                                    <t t-esc="kpis.get('active_vehicles')"/> / <t t-esc="kpis.get('total_vehicles')"/>
+                                </td>
+                                <td style="padding: 8px; text-align: center; font-size: 12px; font-weight: bold;">
+                                    <t t-esc="kpis.get('operational_pct')"/>%
+                                </td>
+                                <td style="padding: 8px; text-align: center; font-size: 12px; font-weight: bold;">
+                                    <t t-esc="kpis.get('total_mounted_tires')"/> / <t t-esc="kpis.get('total_expected_tires')"/>
+                                </td>
+                                <td style="padding: 8px; text-align: center; font-size: 12px; font-weight: bold; color: #dc3545;">
+                                    <t t-esc="kpis.get('critical_tires')"/> Critical
+                                </td>
+                                <td style="padding: 8px; text-align: center; font-size: 12px; font-weight: bold; color: #28a745;">
+                                    <t t-esc="kpis.get('avg_cpkm')"/>
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+
+                    <!-- Vehicle Fleet Status Table -->
+                    <h4 style="color: #2c3e50; font-size: 12px; margin-bottom: 6px; font-weight: bold;">Vehicle Fleet Status Overview</h4>
+                    <table style="width: 100%; border-collapse: collapse; margin-bottom: 15px;" class="table table-sm table-bordered">
+                        <thead style="background-color: #2c3e50; color: #ffffff;">
+                            <tr>
+                                <th>Plate (Nopol)</th>
+                                <th>No. Lambung</th>
+                                <th>Truck Configuration</th>
+                                <th class="text-center">Axles</th>
+                                <th class="text-center">Mounted Ratio</th>
+                                <th class="text-center">Health Status</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <t t-foreach="data.get('vehicle_grid', [])" t-as="v">
+                                <tr>
+                                    <td><strong><t t-esc="v.get('nopol')"/></strong></td>
+                                    <td><t t-esc="v.get('nomor_lambung')"/></td>
+                                    <td><t t-esc="v.get('truck_type')"/></td>
+                                    <td class="text-center"><t t-esc="v.get('axle_count')"/></td>
+                                    <td class="text-center"><t t-esc="v.get('mounted_count')"/>/<t t-esc="v.get('expected_count')"/></td>
+                                    <td class="text-center">
+                                        <span t-attf-class="badge #{v.get('health_state') == 'critical' and 'badge-danger' or (v.get('health_state') == 'warning' and 'badge-warning' or 'badge-success')}">
+                                            <t t-esc="v.get('health_state').upper()"/>
+                                        </span>
+                                    </td>
+                                </tr>
+                            </t>
+                        </tbody>
+                    </table>
+
+                    <!-- Signatures -->
+                    <table style="width: 100%; margin-top: 30px; border: none;">
+                        <tr>
+                            <td style="width: 50%; text-align: center; border: none;">
+                                <div style="margin-bottom: 40px;"><strong>Fleet Operations Manager:</strong></div>
+                                <div>( ________________________ )</div>
+                            </td>
+                            <td style="width: 50%; text-align: center; border: none;">
+                                <div style="margin-bottom: 40px;"><strong>Logistics Director:</strong></div>
+                                <div>( ________________________ )</div>
+                            </td>
+                        </tr>
+                    </table>
+                </div>
+            </t>
+        </t>
+    </template>
+</odoo>

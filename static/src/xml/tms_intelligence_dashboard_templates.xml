@@ -3,54 +3,81 @@
     <!-- Main Dashboard Template -->
     <t t-name="dh_tms_intellegence_dashboard.MainDashboard">
         <div class="tms-intelligence-dashboard-container">
-            <!-- Header Bar -->
+            <!-- Header Bar with Filter Bar & Export Buttons -->
             <div class="dashboard-header-bar">
                 <div class="dashboard-title-box">
                     <h2><i class="fa fa-tachometer mr-2"/>TMS Fleet &amp; Tire Intelligence Command Center</h2>
                     <p>Real-Time Telemetry, Wear Heatmap, CPKM Benchmarks &amp; Predictive Maintenance Alerts</p>
                 </div>
+
+                <!-- Dynamic Hub & Vehicle Type Filter Bar -->
                 <div class="dashboard-controls">
-                    <button class="btn btn-dashboard-refresh js_refresh_dashboard">
-                        <i class="fa fa-refresh mr-1"/> Refresh Intelligence
+                    <t t-if="widget.filters &amp;&amp; widget.filters.operating_units &amp;&amp; widget.filters.operating_units.length">
+                        <select class="form-control form-control-sm js_filter_unit" style="max-width: 180px;">
+                            <option value="">-- All Operating Hubs --</option>
+                            <t t-foreach="widget.filters.operating_units" t-as="ou">
+                                <option t-att-value="ou.id" t-att-selected="widget.selected_unit_id == ou.id ? 'selected' : None">
+                                    <t t-esc="ou.name"/>
+                                </option>
+                            </t>
+                        </select>
+                    </t>
+
+                    <t t-if="widget.filters &amp;&amp; widget.filters.truck_types &amp;&amp; widget.filters.truck_types.length">
+                        <select class="form-control form-control-sm js_filter_truck_type" style="max-width: 180px;">
+                            <option value="">-- All Vehicle Types --</option>
+                            <t t-foreach="widget.filters.truck_types" t-as="tt">
+                                <option t-att-value="tt.id" t-att-selected="widget.selected_truck_type_id == tt.id ? 'selected' : None">
+                                    <t t-esc="tt.name"/>
+                                </option>
+                            </t>
+                        </select>
+                    </t>
+
+                    <button class="btn btn-secondary btn-sm js_export_pdf_report">
+                        <i class="fa fa-file-pdf-o mr-1"/> Export Executive PDF
+                    </button>
+                    <button class="btn btn-dashboard-refresh btn-sm js_refresh_dashboard">
+                        <i class="fa fa-refresh mr-1"/> Refresh
                     </button>
                 </div>
             </div>
 
-            <!-- 4 Executive KPI Cards -->
+            <!-- 4 Interactive Executive KPI Cards (Drilldown Enabled) -->
             <div class="kpi-cards-grid">
-                <div class="kpi-card kpi-active-vehicles">
+                <div class="kpi-card kpi-active-vehicles js_drilldown_fleet" style="cursor: pointer;" title="Click to drill down to Vehicle list">
                     <div class="kpi-icon"><i class="fa fa-truck"/></div>
                     <div class="kpi-details">
                         <span class="kpi-title">Active Fleet Units</span>
                         <span class="kpi-value"><t t-esc="widget.kpis.active_vehicles"/> / <t t-esc="widget.kpis.total_vehicles"/></span>
-                        <span class="kpi-subtitle"><t t-esc="widget.kpis.operational_pct"/>% Operational Readiness</span>
+                        <span class="kpi-subtitle"><t t-esc="widget.kpis.operational_pct"/>% Operational Readiness &gt;</span>
                     </div>
                 </div>
 
-                <div class="kpi-card kpi-mounted-tires">
+                <div class="kpi-card kpi-mounted-tires js_drilldown_mounted_tires" style="cursor: pointer;" title="Click to drill down to Mounted Tires">
                     <div class="kpi-icon"><i class="fa fa-circle-o-notch"/></div>
                     <div class="kpi-details">
                         <span class="kpi-title">Active Mounted Tires</span>
                         <span class="kpi-value"><t t-esc="widget.kpis.total_mounted_tires"/> / <t t-esc="widget.kpis.total_expected_tires"/></span>
-                        <span class="kpi-subtitle">Position Ratio Tracked</span>
+                        <span class="kpi-subtitle">Position Ratio Tracked &gt;</span>
                     </div>
                 </div>
 
-                <div class="kpi-card kpi-wear-alerts">
+                <div class="kpi-card kpi-wear-alerts js_drilldown_wear_alerts" style="cursor: pointer;" title="Click to drill down to Wear Alerts list">
                     <div class="kpi-icon"><i class="fa fa-exclamation-triangle"/></div>
                     <div class="kpi-details">
                         <span class="kpi-title">Wear &amp; PSI Alerts</span>
                         <span class="kpi-value text-danger"><t t-esc="widget.kpis.critical_tires"/> Critical</span>
-                        <span class="kpi-subtitle"><t t-esc="widget.kpis.warning_tires"/> Warnings Needing Action</span>
+                        <span class="kpi-subtitle"><t t-esc="widget.kpis.warning_tires"/> Warnings Needing Action &gt;</span>
                     </div>
                 </div>
 
-                <div class="kpi-card kpi-cpkm">
+                <div class="kpi-card kpi-cpkm js_drilldown_cpkm" style="cursor: pointer;" title="Click to drill down to CPKM Tire Usage">
                     <div class="kpi-icon"><i class="fa fa-line-chart"/></div>
                     <div class="kpi-details">
                         <span class="kpi-title">Avg Fleet CPKM</span>
                         <span class="kpi-value"><t t-esc="widget.kpis.avg_cpkm"/></span>
-                        <span class="kpi-subtitle">Tire Lifecycle Efficiency</span>
+                        <span class="kpi-subtitle">Tire Lifecycle Efficiency &gt;</span>
                     </div>
                 </div>
             </div>
@@ -60,13 +87,19 @@
                 <!-- Left Column: Vehicle Health Quick Grid -->
                 <div class="dashboard-panel">
                     <div class="panel-header">
-                        <h3><i class="fa fa-th-large mr-2"/>Vehicle Fleet Telemetry Quick-Grid</h3>
-                        <span class="badge badge-info"><t t-esc="widget.vehicle_grid.length"/> Vehicles</span>
+                        <h3>
+                            <i class="fa fa-th-large mr-2"/>Vehicle Fleet Telemetry Quick-Grid
+                            <t t-if="widget.active_filter_state">
+                                <span class="badge badge-warning ml-2">Filtered: <t t-esc="widget.active_filter_state.toUpperCase()"/></span>
+                                <button class="btn btn-link btn-sm js_clear_wear_filter">(Clear Filter)</button>
+                            </t>
+                        </h3>
+                        <span class="badge badge-info"><t t-esc="widget.filtered_vehicle_grid.length"/> Vehicles</span>
                     </div>
 
                     <div class="vehicle-cards-container">
-                        <t t-if="widget.vehicle_grid &amp;&amp; widget.vehicle_grid.length">
-                            <t t-foreach="widget.vehicle_grid" t-as="v">
+                        <t t-if="widget.filtered_vehicle_grid &amp;&amp; widget.filtered_vehicle_grid.length">
+                            <t t-foreach="widget.filtered_vehicle_grid" t-as="v">
                                 <div class="vehicle-quick-card js_open_chassis_diagram" t-att-data-vehicle-id="v.id">
                                     <div class="v-card-top">
                                         <span class="v-card-nopol"><t t-esc="v.nopol"/></span>
@@ -83,78 +116,133 @@
                             </t>
                         </t>
                         <t t-else="">
-                            <div class="p-3 text-center text-muted">No vehicles registered in fleet management.</div>
+                            <div class="p-3 text-center text-muted">No vehicles matching active filter criteria.</div>
                         </t>
                     </div>
                 </div>
 
-                <!-- Right Column: Wear Heatmap & Alert Queue -->
+                <!-- Right Column: Interactive Wear Donut Chart & Predictive Widgets -->
                 <div class="dashboard-panel">
+                    <!-- Interactive Wear Heatmap Filter -->
                     <div class="panel-header">
-                        <h3><i class="fa fa-pie-chart mr-2"/>Fleet Tire Wear Distribution</h3>
+                        <h3><i class="fa fa-pie-chart mr-2"/>Fleet Tire Wear Distribution Heatmap</h3>
+                        <small class="text-muted">(Click segment to filter quick-grid)</small>
                     </div>
 
-                    <div class="wear-bar-container mb-4">
-                        <div class="wear-bar-label">
-                            <span>🟢 Normal (&gt;6.0mm): <t t-esc="widget.kpis.normal_tires"/> Tires (<t t-esc="widget.wear_distribution.normal_pct"/>%)</span>
-                            <span>🟡 Warning (3.1-6.0mm): <t t-esc="widget.kpis.warning_tires"/> (<t t-esc="widget.wear_distribution.warning_pct"/>%)</span>
-                            <span>🔴 Critical (&lt;=3.0mm): <t t-esc="widget.kpis.critical_tires"/> (<t t-esc="widget.wear_distribution.critical_pct"/>%)</span>
+                    <!-- Donut Ring Chart -->
+                    <div class="donut-chart-container mb-3" style="display: flex; align-items: center; justify-content: space-around; padding: 10px 0;">
+                        <div style="position: relative; width: 130px; height: 130px;">
+                            <svg width="130" height="130" viewBox="0 0 100 100" style="transform: rotate(-90deg);">
+                                <circle cx="50" cy="50" r="40" fill="transparent" stroke="#e9ecef" stroke-width="12"/>
+                                <circle cx="50" cy="50" r="40" fill="transparent" stroke="#28a745" stroke-width="12" class="js_filter_wear_state" data-state="normal" style="cursor: pointer;"
+                                        t-att-stroke-dasharray="widget.wear_distribution.normal_dash + ' ' + widget.wear_distribution.circumference"
+                                        stroke-dashoffset="0"/>
+                                <circle cx="50" cy="50" r="40" fill="transparent" stroke="#ffc107" stroke-width="12" class="js_filter_wear_state" data-state="warning" style="cursor: pointer;"
+                                        t-att-stroke-dasharray="widget.wear_distribution.warning_dash + ' ' + widget.wear_distribution.circumference"
+                                        t-att-stroke-dashoffset="'-' + widget.wear_distribution.normal_dash"/>
+                                <circle cx="50" cy="50" r="40" fill="transparent" stroke="#dc3545" stroke-width="12" class="js_filter_wear_state" data-state="critical" style="cursor: pointer;"
+                                        t-att-stroke-dasharray="widget.wear_distribution.critical_dash + ' ' + widget.wear_distribution.circumference"
+                                        t-att-stroke-dashoffset="'-' + (widget.wear_distribution.normal_dash + widget.wear_distribution.warning_dash)"/>
+                            </svg>
+                            <div style="position: absolute; top: 0; left: 0; width: 130px; height: 130px; display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center;">
+                                <span style="font-size: 18px; font-weight: 800; color: #2c3e50;"><t t-esc="widget.kpis.total_mounted_tires"/></span>
+                                <span style="font-size: 9px; font-weight: 600; color: #6c757d; text-transform: uppercase;">Mounted</span>
+                            </div>
                         </div>
-                        <div class="progress-track">
-                            <div class="progress-segment normal" t-attf-style="width: #{widget.wear_distribution.normal_pct}%;"/>
-                            <div class="progress-segment warning" t-attf-style="width: #{widget.wear_distribution.warning_pct}%;"/>
-                            <div class="progress-segment critical" t-attf-style="width: #{widget.wear_distribution.critical_pct}%;"/>
+
+                        <!-- Donut Legend (Clickable Filters) -->
+                        <div style="display: flex; flex-direction: column; gap: 8px; font-size: 12px;">
+                            <div class="js_filter_wear_state" data-state="normal" style="cursor: pointer;" title="Click to filter Normal tires">
+                                <span style="display: inline-block; width: 12px; height: 12px; border-radius: 3px; background-color: #28a745; margin-right: 6px;"/>
+                                <span>🟢 Normal (&gt;6.0mm): <strong><t t-esc="widget.kpis.normal_tires"/></strong> (<t t-esc="widget.wear_distribution.normal_pct"/>%)</span>
+                            </div>
+                            <div class="js_filter_wear_state" data-state="warning" style="cursor: pointer;" title="Click to filter Warning tires">
+                                <span style="display: inline-block; width: 12px; height: 12px; border-radius: 3px; background-color: #ffc107; margin-right: 6px;"/>
+                                <span>🟡 Warning (3.1-6.0mm): <strong><t t-esc="widget.kpis.warning_tires"/></strong> (<t t-esc="widget.wear_distribution.warning_pct"/>%)</span>
+                            </div>
+                            <div class="js_filter_wear_state" data-state="critical" style="cursor: pointer;" title="Click to filter Critical tires">
+                                <span style="display: inline-block; width: 12px; height: 12px; border-radius: 3px; background-color: #dc3545; margin-right: 6px;"/>
+                                <span>🔴 Critical (&lt;=3.0mm): <strong><t t-esc="widget.kpis.critical_tires"/></strong> (<t t-esc="widget.wear_distribution.critical_pct"/>%)</span>
+                            </div>
                         </div>
                     </div>
 
-                    <div class="panel-header mt-4">
-                        <h3><i class="fa fa-bell mr-2"/>Actionable Maintenance Alert Queue</h3>
+                    <!-- Automated Tire Rotation Opportunities Widget -->
+                    <div class="panel-header mt-3">
+                        <h3><i class="fa fa-retweet mr-2"/>Recommended Tire Rotation Opportunities</h3>
                     </div>
-
-                    <div class="alert-queue-list">
-                        <t t-if="widget.alert_queue &amp;&amp; widget.alert_queue.length">
-                            <t t-foreach="widget.alert_queue" t-as="alert">
-                                <div t-attf-class="alert-item-card #{alert.severity} js_open_chassis_diagram" t-att-data-vehicle-id="alert.vehicle_id">
+                    <div class="alert-queue-list mb-3">
+                        <t t-if="widget.rotation_recommendations &amp;&amp; widget.rotation_recommendations.length">
+                            <t t-foreach="widget.rotation_recommendations" t-as="rot">
+                                <div class="alert-item-card warning js_open_chassis_diagram" t-att-data-vehicle-id="rot.vehicle_id">
                                     <div class="alert-title-row">
-                                        <span><t t-esc="alert.title"/></span>
-                                        <span class="text-muted"><t t-esc="alert.vehicle_name"/></span>
+                                        <span><i class="fa fa-refresh mr-1"/><t t-esc="rot.action"/></span>
+                                        <span class="text-muted"><t t-esc="rot.vehicle_name"/></span>
                                     </div>
-                                    <p class="alert-msg"><t t-esc="alert.message"/></p>
+                                    <p class="alert-msg"><t t-esc="rot.reason"/></p>
                                 </div>
                             </t>
                         </t>
                         <t t-else="">
-                            <div class="p-3 text-center" style="background-color: #e8f8ec; border-radius: 6px; color: #28a745;">
-                                <i class="fa fa-check-circle mr-1"/> <strong>No Critical Maintenance Alerts</strong> — All mounted fleet tires are operating safely within normal parameters.
+                            <div class="p-2 text-center text-muted" style="background-color: #f8f9fa; border-radius: 4px;">
+                                <i class="fa fa-check mr-1"/> Steer axle tires currently balanced within equal wear tolerances.
+                            </div>
+                        </t>
+                    </div>
+
+                    <!-- Predictive Tire Lifespan Replacement Forecaster -->
+                    <div class="panel-header mt-3">
+                        <h3><i class="fa fa-calendar-check-o mr-2"/>Predictive Replacement Forecaster (Next 30 Days)</h3>
+                    </div>
+                    <div class="alert-queue-list">
+                        <t t-if="widget.replacement_forecast &amp;&amp; widget.replacement_forecast.length">
+                            <t t-foreach="widget.replacement_forecast" t-as="f">
+                                <div t-attf-class="alert-item-card #{f.urgency} js_open_chassis_diagram" t-att-data-vehicle-id="f.vehicle_id">
+                                    <div class="alert-title-row">
+                                        <span><t t-esc="f.vehicle_name"/> (Pos <t t-esc="f.pos_code"/>) — Est: <t t-esc="f.est_days"/></span>
+                                        <span class="badge badge-danger">RTD <t t-esc="f.rtd"/> mm</span>
+                                    </div>
+                                    <p class="alert-msg">Serial: <t t-esc="f.serial_number"/> | Priority tire replacement forecast.</p>
+                                </div>
+                            </t>
+                        </t>
+                        <t t-else="">
+                            <div class="p-2 text-center text-muted" style="background-color: #f8f9fa; border-radius: 4px;">
+                                <i class="fa fa-shield mr-1"/> All mounted fleet tires have sufficient remaining tread depth.
                             </div>
                         </t>
                     </div>
                 </div>
             </div>
 
-            <!-- Bottom Section: Brand CPKM Performance Benchmarking -->
+            <!-- Bottom Section: Brand CPKM Performance Benchmarking Bar Chart (Drilldown Enabled) -->
             <div class="dashboard-panel">
                 <div class="panel-header">
-                    <h3><i class="fa fa-bar-chart mr-2"/>Tire Brand &amp; Pattern Performance Benchmarks</h3>
+                    <h3><i class="fa fa-bar-chart mr-2"/>Tire Brand &amp; Pattern Mileage Output Chart</h3>
+                    <small class="text-muted">(Click brand row to view tire inventory)</small>
                 </div>
 
                 <table class="brand-table">
                     <thead>
                         <tr>
-                            <th>Tire Brand</th>
-                            <th class="text-right">Average Mileage Output (KM)</th>
-                            <th class="text-right">Lifecycle Cost per KM (CPKM)</th>
-                            <th class="text-center">Performance Index</th>
+                            <th style="width: 20%;">Tire Brand</th>
+                            <th style="width: 45%;">Mileage Bar Chart Comparison</th>
+                            <th style="width: 15%;" class="text-right">Average Mileage</th>
+                            <th style="width: 20%;" class="text-right">Cost per KM (CPKM)</th>
                         </tr>
                     </thead>
                     <tbody>
                         <t t-if="widget.brand_performance &amp;&amp; widget.brand_performance.length">
                             <t t-foreach="widget.brand_performance" t-as="b">
-                                <tr>
+                                <tr class="js_drilldown_brand" t-att-data-brand-id="b.brand_id" t-att-data-brand-name="b.brand" style="cursor: pointer;" title="Click to view tire inventory for this brand">
                                     <td><strong><t t-esc="b.brand"/></strong></td>
+                                    <td>
+                                        <div style="height: 16px; background-color: #e9ecef; border-radius: 8px; overflow: hidden; width: 100%;">
+                                            <div t-attf-style="width: #{b.bar_pct}%; height: 100%; background: linear-gradient(90deg, #1e62d0, #28a745); border-radius: 8px; transition: width 0.5s ease;"/>
+                                        </div>
+                                    </td>
                                     <td class="text-right"><t t-esc="b.avg_km ? b.avg_km.toLocaleString() : '-'"/> km</td>
                                     <td class="text-right font-weight-bold text-success"><t t-esc="b.cost_per_km"/></td>
-                                    <td class="text-center"><span class="badge badge-success"><t t-esc="b.rating"/></span></td>
                                 </tr>
                             </t>
                         </t>

@@ -7,11 +7,11 @@
     'description': """
 TMS Fleet & Tire Intelligence Dashboard
 ========================================
-- Executive KPI Cards (Active Fleet, Mounted Tires, Wear Risk Alerts, CPKM Efficiency)
-- Real-Time Wear Heatmap Distribution
-- Vehicle Telemetry Quick-Grid with 1-Click Chassis Visualizer Navigation
-- Brand & Pattern Performance Benchmarking
-- Actionable Maintenance Alert Queue
+1. Dynamic Hub & Vehicle Type Filter Bar
+2. Predictive Tire Lifespan Forecaster
+3. Automated Tire Rotation Opportunities Widget
+4. Interactive Wear Heatmap Filter
+5. 1-Click Executive QWeb PDF Summary Export
     """,
     'author': 'Dino Herlambang',
     'website': 'https://github.com/dinoherlambang/dh_tms',
@@ -24,6 +24,7 @@ TMS Fleet & Tire Intelligence Dashboard
         'security/ir.model.access.csv',
         'views/assets.xml',
         'views/tms_dashboard_views.xml',
+        'reports/tms_dashboard_report_template.xml',
     ],
     'qweb': [
         'static/src/xml/tms_intelligence_dashboard_templates.xml',
