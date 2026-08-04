@@ -29,6 +29,16 @@ TMS Fleet & Tire Intelligence Dashboard
     'qweb': [
         'static/src/xml/tms_intelligence_dashboard_templates.xml',
     ],
+    'assets': {
+        'web.assets_backend': [
+            'dh_tms_intellegence_dashboard/static/src/css/tms_intelligence_dashboard.css',
+            'dh_tms_intellegence_dashboard/static/src/scss/tms_intelligence_dashboard.scss',
+            'dh_tms_intellegence_dashboard/static/src/js/tms_intelligence_dashboard.js',
+        ],
+        'web.assets_qweb': [
+            'dh_tms_intellegence_dashboard/static/src/xml/tms_intelligence_dashboard_templates.xml',
+        ],
+    },
     'installable': True,
     'application': True,
     'auto_install': False,

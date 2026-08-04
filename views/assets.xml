@@ -3,6 +3,7 @@
     <template id="assets_backend" name="dh_tms_intellegence_dashboard assets" inherit_id="web.assets_backend">
         <xpath expr="." position="inside">
             <link rel="stylesheet" type="text/css" href="/dh_tms_intellegence_dashboard/static/src/css/tms_intelligence_dashboard.css"/>
+            <link rel="stylesheet" type="text/scss" href="/dh_tms_intellegence_dashboard/static/src/scss/tms_intelligence_dashboard.scss"/>
             <script type="text/javascript" src="/dh_tms_intellegence_dashboard/static/src/js/tms_intelligence_dashboard.js"></script>
         </xpath>
     </template>
