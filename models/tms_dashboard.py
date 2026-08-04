@@ -5,12 +5,16 @@ class DhTmsDashboard(models.TransientModel):
     _name = 'dh.tms.dashboard'
     _description = 'TMS Fleet & Tire Intelligence Dashboard'
 
+    def action_print_executive_report(self):
+        self.ensure_one()
+        return self.env.ref('dh_tms_intellegence_dashboard.action_report_tms_dashboard_executive').report_action(self)
+
     @api.model
     def get_intelligence_dashboard_data(self, unit_id=None, truck_type_id=None):
         """
         Returns real-time intelligence metrics for the TMS Fleet & Tire Dashboard
         with dynamic hub/vehicle type filtering, predictive lifespan forecaster,
-        automated rotation recommendations, and drilldown targets.
+        automated rotation recommendations, drilldown targets, and interactive brand comparison.
         """
         Vehicle = self.env['dh.vehicle']
         Lot = self.env['stock.production.lot']
@@ -160,7 +164,7 @@ class DhTmsDashboard(models.TransientModel):
                     'message': _('Vehicle %s has %d tire(s) nearing limit (RTD 3.1 - 6.0 mm).') % (v_item['name'], v_item['warning_count']),
                 })
 
-        # 5. Dynamic Brand Performance Benchmarking
+        # 5. Advanced Dynamic Brand Performance Benchmarking & Category Comparison
         tire_lots = Lot.search([('is_tire', '=', True)])
         brand_data = {}
         total_fleet_cost = 0.0
@@ -185,31 +189,66 @@ class DhTmsDashboard(models.TransientModel):
             total_fleet_cost += cost
             total_fleet_km += km
 
+            t_type = getattr(lot, 'tire_type', 'original') or 'original'
+
             if b_name not in brand_data:
-                brand_data[b_name] = {'count': 0, 'total_cost': 0.0, 'total_km': 0.0, 'brand_id': brand_obj_id}
+                brand_data[b_name] = {
+                    'count': 0,
+                    'original_count': 0,
+                    'retread_count': 0,
+                    'total_cost': 0.0,
+                    'total_km': 0.0,
+                    'brand_id': brand_obj_id,
+                }
             
             brand_data[b_name]['count'] += 1
+            if t_type == 'retread':
+                brand_data[b_name]['retread_count'] += 1
+            else:
+                brand_data[b_name]['original_count'] += 1
+
             brand_data[b_name]['total_cost'] += cost
             brand_data[b_name]['total_km'] += km
 
         brand_performance = []
         max_brand_km = 1.0
+        min_cpkm_val = 999999.0
+        best_brand_leader = False
+
         for b_name, b_info in brand_data.items():
             avg_km = round(b_info['total_km'] / b_info['count'], 1) if b_info['count'] > 0 else 0.0
-            cpkm = round(b_info['total_cost'] / b_info['total_km'], 2) if b_info['total_km'] > 0 else 0.0
+            cpkm_val = round(b_info['total_cost'] / b_info['total_km'], 2) if b_info['total_km'] > 0 else 0.0
+            
             if avg_km > max_brand_km:
                 max_brand_km = avg_km
+            if cpkm_val > 0 and cpkm_val < min_cpkm_val:
+                min_cpkm_val = cpkm_val
+                best_brand_leader = b_name
+
             brand_performance.append({
                 'brand': b_name,
                 'brand_id': b_info['brand_id'],
                 'count': b_info['count'],
+                'original_count': b_info['original_count'],
+                'retread_count': b_info['retread_count'],
                 'avg_km': avg_km,
-                'cost_per_km': f"Rp {cpkm} / km" if cpkm > 0 else "-",
-                'rating': "100%" if cpkm > 0 else "-",
+                'cpkm_val': cpkm_val,
+                'cost_per_km': f"Rp {cpkm_val} / km" if cpkm_val > 0 else "-",
             })
 
         for b in brand_performance:
             b['bar_pct'] = round((b['avg_km'] / max_brand_km * 100), 1) if max_brand_km > 0 else 0.0
+            if b['cpkm_val'] > 0 and b['brand'] == best_brand_leader:
+                b['badge_text'] = '🏆 BEST CPKM LEADER'
+                b['badge_class'] = 'badge-success'
+            elif b['cpkm_val'] > 0:
+                b['badge_text'] = 'OPTIMAL'
+                b['badge_class'] = 'badge-info'
+            else:
+                b['badge_text'] = 'NO USAGE LOG'
+                b['badge_class'] = 'badge-secondary'
+
+        brand_performance.sort(key=lambda x: x['avg_km'], reverse=True)
 
         if total_fleet_km > 0 and total_fleet_cost > 0:
             avg_fleet_cpkm = f"Rp {round(total_fleet_cost / total_fleet_km, 2)} / km"
@@ -257,6 +296,7 @@ class DhTmsDashboard(models.TransientModel):
             'vehicle_grid': vehicle_grid,
             'alert_queue': alert_queue[:10],
             'brand_performance': brand_performance,
+            'best_brand_leader': best_brand_leader or '-',
             'rotation_recommendations': rotation_recommendations[:5],
             'replacement_forecast': replacement_forecast[:5],
         }

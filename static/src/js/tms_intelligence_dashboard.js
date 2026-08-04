@@ -16,6 +16,10 @@ odoo.define('dh_tms_intellegence_dashboard.Dashboard', function (require) {
             'click .js_clear_wear_filter': '_onClearWearFilter',
             'click .js_export_pdf_report': '_onExportPdfReport',
 
+            // Brand Panel Interactive Filters
+            'change .js_filter_brand_category': '_onFilterBrandCategory',
+            'change .js_filter_brand_sort': '_onSortBrandPerformance',
+
             // Interactive Drilldown Handlers
             'click .js_drilldown_fleet': '_onDrilldownFleet',
             'click .js_drilldown_mounted_tires': '_onDrilldownMountedTires',
@@ -32,12 +36,16 @@ odoo.define('dh_tms_intellegence_dashboard.Dashboard', function (require) {
             this.filtered_vehicle_grid = [];
             this.alert_queue = [];
             this.brand_performance = [];
+            this.filtered_brand_performance = [];
+            this.best_brand_leader = '-';
             this.rotation_recommendations = [];
             this.replacement_forecast = [];
             this.filters = {};
             this.selected_unit_id = false;
             this.selected_truck_type_id = false;
             this.active_filter_state = false;
+            this.active_brand_category = '';
+            this.active_brand_sort = 'mileage';
         },
 
         willStart: function () {
@@ -65,10 +73,12 @@ odoo.define('dh_tms_intellegence_dashboard.Dashboard', function (require) {
                 self.vehicle_grid = data.vehicle_grid || [];
                 self.alert_queue = data.alert_queue || [];
                 self.brand_performance = data.brand_performance || [];
+                self.best_brand_leader = data.best_brand_leader || '-';
                 self.rotation_recommendations = data.rotation_recommendations || [];
                 self.replacement_forecast = data.replacement_forecast || [];
 
                 self._applyLocalWearFilter();
+                self._applyBrandFilterAndSort();
             }).catch(function (error) {
                 console.error('[DH_TMS_DASHBOARD] Error fetching dashboard data:', error);
             });
@@ -83,6 +93,52 @@ odoo.define('dh_tms_intellegence_dashboard.Dashboard', function (require) {
                     return v.health_state === self.active_filter_state;
                 });
             }
+        },
+
+        _applyBrandFilterAndSort: function () {
+            var self = this;
+            var list = (self.brand_performance || []).slice();
+
+            // 1. Filter by Category
+            if (self.active_brand_category === 'original') {
+                list = list.filter(function (b) { return b.original_count > 0; });
+            } else if (self.active_brand_category === 'retread') {
+                list = list.filter(function (b) { return b.retread_count > 0; });
+            }
+
+            // 2. Sort Dimension
+            if (self.active_brand_sort === 'cpkm') {
+                list.sort(function (a, b) {
+                    if (a.cpkm_val === 0) return 1;
+                    if (b.cpkm_val === 0) return -1;
+                    return a.cpkm_val - b.cpkm_val;
+                });
+            } else if (self.active_brand_sort === 'count') {
+                list.sort(function (a, b) {
+                    return b.count - a.count;
+                });
+            } else {
+                // Sort by mileage (Default)
+                list.sort(function (a, b) {
+                    return b.avg_km - a.avg_km;
+                });
+            }
+
+            self.filtered_brand_performance = list;
+        },
+
+        _onFilterBrandCategory: function (ev) {
+            ev.preventDefault();
+            this.active_brand_category = $(ev.currentTarget).val() || '';
+            this._applyBrandFilterAndSort();
+            this.renderElement();
+        },
+
+        _onSortBrandPerformance: function (ev) {
+            ev.preventDefault();
+            this.active_brand_sort = $(ev.currentTarget).val() || 'mileage';
+            this._applyBrandFilterAndSort();
+            this.renderElement();
         },
 
         _onChangeFilter: function (ev) {
@@ -142,12 +198,14 @@ odoo.define('dh_tms_intellegence_dashboard.Dashboard', function (require) {
                 method: 'create',
                 args: [{}],
             }).then(function (recId) {
-                self.do_action({
-                    type: 'ir.actions.report',
-                    report_name: 'dh_tms_intellegence_dashboard.report_tms_dashboard_executive',
-                    report_type: 'qweb-pdf',
-                    res_model: 'dh.tms.dashboard',
-                    res_id: recId,
+                self._rpc({
+                    model: 'dh.tms.dashboard',
+                    method: 'action_print_executive_report',
+                    args: [[recId]],
+                }).then(function (action) {
+                    if (action) {
+                        self.do_action(action);
+                    }
                 });
             });
         },

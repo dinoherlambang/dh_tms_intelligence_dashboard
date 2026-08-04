@@ -215,41 +215,72 @@
                 </div>
             </div>
 
-            <!-- Bottom Section: Brand CPKM Performance Benchmarking Bar Chart (Drilldown Enabled) -->
+            <!-- Bottom Section: Advanced Brand Performance Benchmarking & Interactive Panel Filter -->
             <div class="dashboard-panel">
-                <div class="panel-header">
-                    <h3><i class="fa fa-bar-chart mr-2"/>Tire Brand &amp; Pattern Mileage Output Chart</h3>
-                    <small class="text-muted">(Click brand row to view tire inventory)</small>
+                <div class="panel-header" style="flex-wrap: wrap; gap: 10px;">
+                    <h3><i class="fa fa-bar-chart mr-2"/>Tire Brand &amp; Pattern Performance Benchmarks</h3>
+                    <div style="display: flex; align-items: center; gap: 8px;">
+                        <!-- Category Filter Dropdown -->
+                        <select class="form-control form-control-sm js_filter_brand_category" style="max-width: 150px;">
+                            <option value="">All Categories</option>
+                            <option value="original" t-att-selected="widget.active_brand_category == 'original' ? 'selected' : None">Original Tires</option>
+                            <option value="retread" t-att-selected="widget.active_brand_category == 'retread' ? 'selected' : None">Retread Tires</option>
+                        </select>
+
+                        <!-- Sorting Dimension Dropdown -->
+                        <select class="form-control form-control-sm js_filter_brand_sort" style="max-width: 170px;">
+                            <option value="mileage" t-att-selected="widget.active_brand_sort == 'mileage' ? 'selected' : None">Sort by Mileage (High)</option>
+                            <option value="cpkm" t-att-selected="widget.active_brand_sort == 'cpkm' ? 'selected' : None">Sort by CPKM (Best Leader)</option>
+                            <option value="count" t-att-selected="widget.active_brand_sort == 'count' ? 'selected' : None">Sort by Serials Count</option>
+                        </select>
+
+                        <span class="badge badge-primary"><t t-esc="widget.filtered_brand_performance.length"/> Brands</span>
+                        <t t-if="widget.best_brand_leader &amp;&amp; widget.best_brand_leader != '-'">
+                            <span class="badge badge-success">Top Leader: <t t-esc="widget.best_brand_leader"/></span>
+                        </t>
+                    </div>
                 </div>
 
                 <table class="brand-table">
                     <thead>
                         <tr>
-                            <th style="width: 20%;">Tire Brand</th>
-                            <th style="width: 45%;">Mileage Bar Chart Comparison</th>
-                            <th style="width: 15%;" class="text-right">Average Mileage</th>
-                            <th style="width: 20%;" class="text-right">Cost per KM (CPKM)</th>
+                            <th style="width: 22%;">Tire Brand</th>
+                            <th style="width: 40%;">Average Mileage Comparison (KM)</th>
+                            <th style="width: 18%;" class="text-right">Cost per KM (CPKM)</th>
+                            <th style="width: 20%;" class="text-center">Performance Rating</th>
                         </tr>
                     </thead>
                     <tbody>
-                        <t t-if="widget.brand_performance &amp;&amp; widget.brand_performance.length">
-                            <t t-foreach="widget.brand_performance" t-as="b">
+                        <t t-if="widget.filtered_brand_performance &amp;&amp; widget.filtered_brand_performance.length">
+                            <t t-foreach="widget.filtered_brand_performance" t-as="b">
                                 <tr class="js_drilldown_brand" t-att-data-brand-id="b.brand_id" t-att-data-brand-name="b.brand" style="cursor: pointer;" title="Click to view tire inventory for this brand">
-                                    <td><strong><t t-esc="b.brand"/></strong></td>
                                     <td>
-                                        <div style="height: 16px; background-color: #e9ecef; border-radius: 8px; overflow: hidden; width: 100%;">
-                                            <div t-attf-style="width: #{b.bar_pct}%; height: 100%; background: linear-gradient(90deg, #1e62d0, #28a745); border-radius: 8px; transition: width 0.5s ease;"/>
+                                        <strong><t t-esc="b.brand"/></strong>
+                                        <span class="badge badge-light ml-1"><t t-esc="b.count"/> Serials</span>
+                                    </td>
+                                    <td>
+                                        <div style="display: flex; align-items: center; gap: 10px;">
+                                            <div style="flex: 1; height: 16px; background-color: #e9ecef; border-radius: 8px; overflow: hidden;">
+                                                <div t-attf-style="width: #{b.bar_pct}%; height: 100%; background: linear-gradient(90deg, #1e62d0, #28a745); border-radius: 8px; transition: width 0.5s ease;"/>
+                                            </div>
+                                            <span style="font-weight: bold; font-size: 11px; min-width: 70px; text-align: right;">
+                                                <t t-esc="b.avg_km ? b.avg_km.toLocaleString() : '0'"/> km
+                                            </span>
                                         </div>
                                     </td>
-                                    <td class="text-right"><t t-esc="b.avg_km ? b.avg_km.toLocaleString() : '-'"/> km</td>
                                     <td class="text-right font-weight-bold text-success"><t t-esc="b.cost_per_km"/></td>
+                                    <td class="text-center">
+                                        <span t-attf-class="badge #{b.badge_class}">
+                                            <t t-esc="b.badge_text"/>
+                                        </span>
+                                    </td>
                                 </tr>
                             </t>
                         </t>
                         <t t-else="">
                             <tr>
                                 <td colspan="4" class="text-center text-muted p-3">
-                                    No tire serial numbers or brand mileage history recorded in database yet.
+                                    No brand performance records matching active panel filter criteria.
                                 </td>
                             </tr>
                         </t>
