@@ -1,0 +1,173 @@
+<?xml version="1.0" encoding="utf-8"?>
+<templates xml:space="preserve">
+    <!-- Main Dashboard Template -->
+    <t t-name="dh_tms_intellegence_dashboard.MainDashboard">
+        <div class="tms-intelligence-dashboard-container">
+            <!-- Header Bar -->
+            <div class="dashboard-header-bar">
+                <div class="dashboard-title-box">
+                    <h2><i class="fa fa-tachometer mr-2"/>TMS Fleet &amp; Tire Intelligence Command Center</h2>
+                    <p>Real-Time Telemetry, Wear Heatmap, CPKM Benchmarks &amp; Predictive Maintenance Alerts</p>
+                </div>
+                <div class="dashboard-controls">
+                    <button class="btn btn-dashboard-refresh js_refresh_dashboard">
+                        <i class="fa fa-refresh mr-1"/> Refresh Intelligence
+                    </button>
+                </div>
+            </div>
+
+            <!-- 4 Executive KPI Cards -->
+            <div class="kpi-cards-grid">
+                <div class="kpi-card kpi-active-vehicles">
+                    <div class="kpi-icon"><i class="fa fa-truck"/></div>
+                    <div class="kpi-details">
+                        <span class="kpi-title">Active Fleet Units</span>
+                        <span class="kpi-value"><t t-esc="widget.kpis.active_vehicles"/> / <t t-esc="widget.kpis.total_vehicles"/></span>
+                        <span class="kpi-subtitle"><t t-esc="widget.kpis.operational_pct"/>% Operational Readiness</span>
+                    </div>
+                </div>
+
+                <div class="kpi-card kpi-mounted-tires">
+                    <div class="kpi-icon"><i class="fa fa-circle-o-notch"/></div>
+                    <div class="kpi-details">
+                        <span class="kpi-title">Active Mounted Tires</span>
+                        <span class="kpi-value"><t t-esc="widget.kpis.total_mounted_tires"/> / <t t-esc="widget.kpis.total_expected_tires"/></span>
+                        <span class="kpi-subtitle">Position Ratio Tracked</span>
+                    </div>
+                </div>
+
+                <div class="kpi-card kpi-wear-alerts">
+                    <div class="kpi-icon"><i class="fa fa-exclamation-triangle"/></div>
+                    <div class="kpi-details">
+                        <span class="kpi-title">Wear &amp; PSI Alerts</span>
+                        <span class="kpi-value text-danger"><t t-esc="widget.kpis.critical_tires"/> Critical</span>
+                        <span class="kpi-subtitle"><t t-esc="widget.kpis.warning_tires"/> Warnings Needing Action</span>
+                    </div>
+                </div>
+
+                <div class="kpi-card kpi-cpkm">
+                    <div class="kpi-icon"><i class="fa fa-line-chart"/></div>
+                    <div class="kpi-details">
+                        <span class="kpi-title">Avg Fleet CPKM</span>
+                        <span class="kpi-value"><t t-esc="widget.kpis.avg_cpkm"/></span>
+                        <span class="kpi-subtitle">Tire Lifecycle Efficiency</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Main Content Grid -->
+            <div class="dashboard-main-grid">
+                <!-- Left Column: Vehicle Health Quick Grid -->
+                <div class="dashboard-panel">
+                    <div class="panel-header">
+                        <h3><i class="fa fa-th-large mr-2"/>Vehicle Fleet Telemetry Quick-Grid</h3>
+                        <span class="badge badge-info"><t t-esc="widget.vehicle_grid.length"/> Vehicles</span>
+                    </div>
+
+                    <div class="vehicle-cards-container">
+                        <t t-if="widget.vehicle_grid &amp;&amp; widget.vehicle_grid.length">
+                            <t t-foreach="widget.vehicle_grid" t-as="v">
+                                <div class="vehicle-quick-card js_open_chassis_diagram" t-att-data-vehicle-id="v.id">
+                                    <div class="v-card-top">
+                                        <span class="v-card-nopol"><t t-esc="v.nopol"/></span>
+                                        <span t-attf-class="health-badge #{v.health_state}">
+                                            <t t-esc="v.health_state.toUpperCase()"/>
+                                        </span>
+                                    </div>
+                                    <div class="v-card-type"><t t-esc="v.truck_type"/> | Lambung: <t t-esc="v.nomor_lambung"/></div>
+                                    <div class="v-card-bottom">
+                                        <span>Mounted Ratio: <strong><t t-esc="v.mounted_count"/>/<t t-esc="v.expected_count"/></strong></span>
+                                        <span class="text-primary font-weight-bold">View Chassis Diagram &gt;</span>
+                                    </div>
+                                </div>
+                            </t>
+                        </t>
+                        <t t-else="">
+                            <div class="p-3 text-center text-muted">No vehicles registered in fleet management.</div>
+                        </t>
+                    </div>
+                </div>
+
+                <!-- Right Column: Wear Heatmap & Alert Queue -->
+                <div class="dashboard-panel">
+                    <div class="panel-header">
+                        <h3><i class="fa fa-pie-chart mr-2"/>Fleet Tire Wear Distribution</h3>
+                    </div>
+
+                    <div class="wear-bar-container mb-4">
+                        <div class="wear-bar-label">
+                            <span>🟢 Normal (&gt;6.0mm): <t t-esc="widget.kpis.normal_tires"/> Tires (<t t-esc="widget.wear_distribution.normal_pct"/>%)</span>
+                            <span>🟡 Warning (3.1-6.0mm): <t t-esc="widget.kpis.warning_tires"/> (<t t-esc="widget.wear_distribution.warning_pct"/>%)</span>
+                            <span>🔴 Critical (&lt;=3.0mm): <t t-esc="widget.kpis.critical_tires"/> (<t t-esc="widget.wear_distribution.critical_pct"/>%)</span>
+                        </div>
+                        <div class="progress-track">
+                            <div class="progress-segment normal" t-attf-style="width: #{widget.wear_distribution.normal_pct}%;"/>
+                            <div class="progress-segment warning" t-attf-style="width: #{widget.wear_distribution.warning_pct}%;"/>
+                            <div class="progress-segment critical" t-attf-style="width: #{widget.wear_distribution.critical_pct}%;"/>
+                        </div>
+                    </div>
+
+                    <div class="panel-header mt-4">
+                        <h3><i class="fa fa-bell mr-2"/>Actionable Maintenance Alert Queue</h3>
+                    </div>
+
+                    <div class="alert-queue-list">
+                        <t t-if="widget.alert_queue &amp;&amp; widget.alert_queue.length">
+                            <t t-foreach="widget.alert_queue" t-as="alert">
+                                <div t-attf-class="alert-item-card #{alert.severity} js_open_chassis_diagram" t-att-data-vehicle-id="alert.vehicle_id">
+                                    <div class="alert-title-row">
+                                        <span><t t-esc="alert.title"/></span>
+                                        <span class="text-muted"><t t-esc="alert.vehicle_name"/></span>
+                                    </div>
+                                    <p class="alert-msg"><t t-esc="alert.message"/></p>
+                                </div>
+                            </t>
+                        </t>
+                        <t t-else="">
+                            <div class="p-3 text-center" style="background-color: #e8f8ec; border-radius: 6px; color: #28a745;">
+                                <i class="fa fa-check-circle mr-1"/> <strong>No Critical Maintenance Alerts</strong> — All mounted fleet tires are operating safely within normal parameters.
+                            </div>
+                        </t>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Bottom Section: Brand CPKM Performance Benchmarking -->
+            <div class="dashboard-panel">
+                <div class="panel-header">
+                    <h3><i class="fa fa-bar-chart mr-2"/>Tire Brand &amp; Pattern Performance Benchmarks</h3>
+                </div>
+
+                <table class="brand-table">
+                    <thead>
+                        <tr>
+                            <th>Tire Brand</th>
+                            <th class="text-right">Average Mileage Output (KM)</th>
+                            <th class="text-right">Lifecycle Cost per KM (CPKM)</th>
+                            <th class="text-center">Performance Index</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <t t-if="widget.brand_performance &amp;&amp; widget.brand_performance.length">
+                            <t t-foreach="widget.brand_performance" t-as="b">
+                                <tr>
+                                    <td><strong><t t-esc="b.brand"/></strong></td>
+                                    <td class="text-right"><t t-esc="b.avg_km ? b.avg_km.toLocaleString() : '-'"/> km</td>
+                                    <td class="text-right font-weight-bold text-success"><t t-esc="b.cost_per_km"/></td>
+                                    <td class="text-center"><span class="badge badge-success"><t t-esc="b.rating"/></span></td>
+                                </tr>
+                            </t>
+                        </t>
+                        <t t-else="">
+                            <tr>
+                                <td colspan="4" class="text-center text-muted p-3">
+                                    No tire serial numbers or brand mileage history recorded in database yet.
+                                </td>
+                            </tr>
+                        </t>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </t>
+</templates>
