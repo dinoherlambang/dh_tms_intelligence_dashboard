@@ -14,13 +14,12 @@ class DhTmsDashboard(models.TransientModel):
         """
         Vehicle = self.env['dh.vehicle']
         Lot = self.env['stock.production.lot']
-        OperatingUnit = self.env['operating.unit'] if 'operating.unit' in self.env else False
         TruckType = self.env['dh.truck.type']
 
         # 1. Available Filter Dropdown Options
         operating_units = []
-        if OperatingUnit:
-            ou_records = OperatingUnit.search([])
+        if 'operating.unit' in self.env:
+            ou_records = self.env['operating.unit'].search([])
             operating_units = [{'id': ou.id, 'name': ou.name} for ou in ou_records]
 
         tt_records = TruckType.search([])
