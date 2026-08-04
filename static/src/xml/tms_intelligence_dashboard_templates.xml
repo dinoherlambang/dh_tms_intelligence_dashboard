@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <templates xml:space="preserve">
     <!-- Main Dashboard Template -->
-    <t t-name="dh_tms_intellegence_dashboard.MainDashboard">
+    <t t-name="dh_tms_intelligence_dashboard.MainDashboard">
         <div class="tms-intelligence-dashboard-container">
             <!-- Header Bar with Filter Bar & Export Buttons -->
             <div class="dashboard-header-bar">

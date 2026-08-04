@@ -5,8 +5,8 @@
         <field name="name">Executive Fleet &amp; Tire Intelligence Summary</field>
         <field name="model">dh.tms.dashboard</field>
         <field name="report_type">qweb-pdf</field>
-        <field name="report_name">dh_tms_intellegence_dashboard.report_tms_dashboard_executive</field>
-        <field name="report_file">dh_tms_intellegence_dashboard.report_tms_dashboard_executive</field>
+        <field name="report_name">dh_tms_intelligence_dashboard.report_tms_dashboard_executive</field>
+        <field name="report_file">dh_tms_intelligence_dashboard.report_tms_dashboard_executive</field>
         <field name="print_report_name">'TMS_Executive_Fleet_Summary'</field>
     </record>
 

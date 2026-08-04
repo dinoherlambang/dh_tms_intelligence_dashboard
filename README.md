@@ -1,4 +1,4 @@
-# 🚚 TMS Fleet & Tire Intelligence Dashboard (`dh_tms_intellegence_dashboard`)
+# 🚚 TMS Fleet & Tire Intelligence Dashboard (`dh_tms_intelligence_dashboard`)
 
 [![Odoo Version](https://img.shields.io/badge/Odoo-13.0-1e62d0.svg)](https://www.odoo.com/)
 [![License](https://img.shields.io/badge/License-LGPL--3-blue.svg)](LICENSE)
@@ -25,7 +25,7 @@ A standalone, real-time **Executive & Operational Command Center** for commercia
 ## 📁 Repository & Module Structure
 
 ```text
-dh_tms_intellegence_dashboard/
+dh_tms_intelligence_dashboard/
 ├── README.md                                  # Module Documentation for GitHub
 ├── __init__.py                                # Python package initializer
 ├── __manifest__.py                            # Odoo 13 module manifest
@@ -59,7 +59,7 @@ dh_tms_intellegence_dashboard/
 1. Clone or place the repository folder into your Odoo custom addons directory:
    ```bash
    cd /path/to/odoo/custom/addons
-   git clone https://github.com/dinoherlambang/dh_tms_intellegence_dashboard.git
+   git clone https://github.com/dinoherlambang/dh_tms_intelligence_dashboard.git
    ```
 2. Restart your Odoo server instance:
    ```bash
@@ -68,7 +68,7 @@ dh_tms_intellegence_dashboard/
 3. Log in to Odoo as an Administrator.
 4. Enable **Developer Mode** (`Settings → Activate the developer mode`).
 5. Go to **Apps → Update Apps List**.
-6. Search for `TMS Fleet & Tire Intelligence Dashboard` (`dh_tms_intellegence_dashboard`).
+6. Search for `TMS Fleet & Tire Intelligence Dashboard` (`dh_tms_intelligence_dashboard`).
 7. Click **Install**.
 
 ---
@@ -83,4 +83,4 @@ Once installed, navigate to:
 
 - **Author**: Dino Herlambang
 - **License**: GNU Lesser General Public License v3.0 (LGPL-3)
-- **Repository**: [github.com/dinoherlambang/dh_tms_intellegence_dashboard](https://github.com/dinoherlambang/dh_tms_intellegence_dashboard)
+- **Repository**: [github.com/dinoherlambang/dh_tms_intelligence_dashboard](https://github.com/dinoherlambang/dh_tms_intelligence_dashboard)

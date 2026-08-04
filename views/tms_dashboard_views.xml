@@ -1,16 +1,16 @@
 <?xml version="1.0" encoding="utf-8"?>
 <odoo>
     <!-- Client Action for TMS Intelligence Dashboard -->
-    <record id="action_dh_tms_intellegence_dashboard" model="ir.actions.client">
+    <record id="action_dh_tms_intelligence_dashboard" model="ir.actions.client">
         <field name="name">TMS Fleet &amp; Tire Intelligence Dashboard</field>
-        <field name="tag">dh_tms_intellegence_dashboard_main</field>
+        <field name="tag">dh_tms_intelligence_dashboard_main</field>
         <field name="target">main</field>
     </record>
 
     <!-- Menu Item under TMS Root (Positioned after Reports Menu) -->
-    <menuitem id="menu_dh_tms_intellegence_dashboard" 
+    <menuitem id="menu_dh_tms_intelligence_dashboard" 
               name="Intelligence Dashboard" 
               parent="dh_tms.menu_dh_tms_root" 
-              action="action_dh_tms_intellegence_dashboard" 
+              action="action_dh_tms_intelligence_dashboard" 
               sequence="60"/>
 </odoo>

@@ -1,4 +1,4 @@
-odoo.define('dh_tms_intellegence_dashboard.Dashboard', function (require) {
+odoo.define('dh_tms_intelligence_dashboard.Dashboard', function (require) {
     "use strict";
 
     var AbstractAction = require('web.AbstractAction');
@@ -6,7 +6,7 @@ odoo.define('dh_tms_intellegence_dashboard.Dashboard', function (require) {
     var rpc = require('web.rpc');
 
     var TmsIntelligenceDashboard = AbstractAction.extend({
-        template: 'dh_tms_intellegence_dashboard.MainDashboard',
+        template: 'dh_tms_intelligence_dashboard.MainDashboard',
         events: {
             'click .js_refresh_dashboard': '_onRefreshDashboard',
             'click .js_open_chassis_diagram': '_onOpenChassisDiagram',
@@ -295,7 +295,7 @@ odoo.define('dh_tms_intellegence_dashboard.Dashboard', function (require) {
         }
     });
 
-    core.action_registry.add('dh_tms_intellegence_dashboard_main', TmsIntelligenceDashboard);
+    core.action_registry.add('dh_tms_intelligence_dashboard_main', TmsIntelligenceDashboard);
 
     return TmsIntelligenceDashboard;
 });

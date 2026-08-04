@@ -7,7 +7,7 @@ class DhTmsDashboard(models.TransientModel):
 
     def action_print_executive_report(self):
         self.ensure_one()
-        return self.env.ref('dh_tms_intellegence_dashboard.action_report_tms_dashboard_executive').report_action(self)
+        return self.env.ref('dh_tms_intelligence_dashboard.action_report_tms_dashboard_executive').report_action(self)
 
     @api.model
     def get_intelligence_dashboard_data(self, unit_id=None, truck_type_id=None):
