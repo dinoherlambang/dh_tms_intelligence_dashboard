@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <data noupdate="0">
+        <!-- Dedicated Security Group for TMS Intelligence Dashboard -->
+        <record id="group_tms_dashboard_manager" model="res.groups">
+            <field name="name">TMS Dashboard Manager</field>
+            <field name="category_id" ref="dh_tms.module_category_tire_management"/>
+            <field name="implied_ids" eval="[(4, ref('dh_tms.group_tire_user'))]"/>
+            <field name="users" eval="[(4, ref('base.user_admin'))]"/>
+        </record>
+    </data>
+</odoo>

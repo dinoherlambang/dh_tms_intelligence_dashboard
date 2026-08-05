@@ -7,10 +7,11 @@
         <field name="target">main</field>
     </record>
 
-    <!-- Menu Item under TMS Root (Positioned after Reports Menu) -->
+    <!-- Menu Item under TMS Root (Restricted to TMS Dashboard Managers) -->
     <menuitem id="menu_dh_tms_intelligence_dashboard" 
               name="Intelligence Dashboard" 
               parent="dh_tms.menu_dh_tms_root" 
               action="action_dh_tms_intelligence_dashboard" 
+              groups="dh_tms_intelligence_dashboard.group_tms_dashboard_manager"
               sequence="60"/>
 </odoo>

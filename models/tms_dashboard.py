@@ -1,5 +1,6 @@
 # -*- coding: utf-8 -*-
 from odoo import models, fields, api, _
+from odoo.exceptions import AccessError
 from datetime import date
 
 class DhTmsDashboard(models.TransientModel):
@@ -8,6 +9,8 @@ class DhTmsDashboard(models.TransientModel):
 
     def action_print_executive_report(self):
         self.ensure_one()
+        if not self.env.user.has_group('dh_tms_intelligence_dashboard.group_tms_dashboard_manager'):
+            raise AccessError(_("Access Restricted: Only TMS Dashboard Managers can print the Executive Report."))
         return self.env.ref('dh_tms_intelligence_dashboard.action_report_tms_dashboard_executive').report_action(self)
 
     @api.model
@@ -18,6 +21,9 @@ class DhTmsDashboard(models.TransientModel):
         automated rotation recommendations, drilldown targets, interactive brand comparison,
         Tire Pressure (PSI) Matrix, Trailer Exchange Monitor, and CPK Billing / Min-KM Deficit Telemetry.
         """
+        if not self.env.user.has_group('dh_tms_intelligence_dashboard.group_tms_dashboard_manager'):
+            raise AccessError(_("Access Restricted: Only TMS Dashboard Managers can view the Intelligence Dashboard."))
+
         Vehicle = self.env['dh.vehicle']
         Lot = self.env['stock.production.lot']
         TruckType = self.env['dh.truck.type']

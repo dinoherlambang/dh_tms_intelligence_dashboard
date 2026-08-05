@@ -22,6 +22,7 @@ TMS Fleet & Tire Intelligence Dashboard
         'dh_tms',
     ],
     'data': [
+        'security/security.xml',
         'security/ir.model.access.csv',
         'views/assets.xml',
         'views/tms_dashboard_views.xml',
