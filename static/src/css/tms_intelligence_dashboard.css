@@ -1,9 +1,16 @@
-/* TMS Fleet & Tire Intelligence Dashboard Stylesheet */
+/* Fix Odoo 13 Action Manager & Client Action Scroll Containers */
+.o_action_manager,
+.o_action_manager > .o_client_action,
+.o_content {
+    overflow-y: auto !important;
+}
 
 .tms-intelligence-dashboard-container {
     padding: 20px;
     background-color: #f4f6f9;
-    min-height: 100vh;
+    min-height: 100%;
+    height: auto;
+    overflow-y: auto !important;
     font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
     color: #212529;
 }
@@ -303,3 +310,18 @@
     color: #495057;
     font-weight: 700;
 }
+
+/* Tire Pressure PSI Matrix & Trailer Coupling Telemetry */
+.psi-matrix-container {
+    box-shadow: inset 0 1px 3px rgba(0, 0, 0, 0.05);
+}
+
+.coupling-card {
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.coupling-card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.06);
+}
+

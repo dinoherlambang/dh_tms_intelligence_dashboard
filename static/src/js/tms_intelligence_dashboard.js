@@ -24,14 +24,23 @@ odoo.define('dh_tms_intelligence_dashboard.Dashboard', function (require) {
             'click .js_drilldown_fleet': '_onDrilldownFleet',
             'click .js_drilldown_mounted_tires': '_onDrilldownMountedTires',
             'click .js_drilldown_wear_alerts': '_onDrilldownWearAlerts',
+            'click .js_drilldown_psi_alerts': '_onDrilldownPSIAlerts',
             'click .js_drilldown_cpkm': '_onDrilldownCPKM',
             'click .js_drilldown_brand': '_onDrilldownBrand',
+            'click .js_open_trailer_exchange': '_onOpenTrailerExchange',
+            'click .js_drilldown_trailer_exchanges': '_onDrilldownTrailerExchanges',
+            'click .js_open_billing_wizard': '_onOpenBillingWizard',
         },
 
         init: function (parent, action) {
             this._super.apply(this, arguments);
             this.kpis = {};
             this.wear_distribution = {};
+            this.psi_distribution = {};
+            this.trailer_coupling_summary = {};
+            this.recent_trailer_exchanges = [];
+            this.cpk_billing_summary = {};
+            this.min_km_deficit_vehicles = [];
             this.vehicle_grid = [];
             this.filtered_vehicle_grid = [];
             this.alert_queue = [];
@@ -70,6 +79,11 @@ odoo.define('dh_tms_intelligence_dashboard.Dashboard', function (require) {
                 self.filters = data.filters || {};
                 self.kpis = data.kpis || {};
                 self.wear_distribution = data.wear_distribution || {};
+                self.psi_distribution = data.psi_distribution || {};
+                self.trailer_coupling_summary = data.trailer_coupling_summary || {};
+                self.recent_trailer_exchanges = data.recent_trailer_exchanges || [];
+                self.cpk_billing_summary = data.cpk_billing_summary || {};
+                self.min_km_deficit_vehicles = data.min_km_deficit_vehicles || [];
                 self.vehicle_grid = data.vehicle_grid || [];
                 self.alert_queue = data.alert_queue || [];
                 self.brand_performance = data.brand_performance || [];
@@ -291,6 +305,64 @@ odoo.define('dh_tms_intelligence_dashboard.Dashboard', function (require) {
                 views: [[false, 'list'], [false, 'form']],
                 domain: domain,
                 target: 'current',
+            });
+        },
+
+        _onDrilldownPSIAlerts: function (ev) {
+            ev.preventDefault();
+            this.do_action({
+                name: 'Tire Pressure (PSI) Telemetry & Alerts',
+                type: 'ir.actions.act_window',
+                res_model: 'stock.production.lot',
+                views: [[false, 'list'], [false, 'form']],
+                domain: [['is_tire', '=', true], ['tire_state', '=', 'mounted'], ['current_psi', '<', 100]],
+                target: 'current',
+            });
+        },
+
+        _onOpenTrailerExchange: function (ev) {
+            ev.preventDefault();
+            var exchangeId = $(ev.currentTarget).data('exchange-id');
+            if (!exchangeId) return;
+            this.do_action({
+                name: 'Trailer Exchange Detail',
+                type: 'ir.actions.act_window',
+                res_model: 'dh.trailer.exchange',
+                res_id: exchangeId,
+                views: [[false, 'form']],
+                target: 'current',
+            });
+        },
+
+        _onDrilldownTrailerExchanges: function (ev) {
+            ev.preventDefault();
+            var domain = [];
+            if (this.selected_unit_id) {
+                domain.push(['location_id', '=', parseInt(this.selected_unit_id)]);
+            }
+            this.do_action({
+                name: 'Trailer Exchange History',
+                type: 'ir.actions.act_window',
+                res_model: 'dh.trailer.exchange',
+                views: [[false, 'list'], [false, 'form']],
+                domain: domain,
+                target: 'current',
+            });
+        },
+
+        _onOpenBillingWizard: function (ev) {
+            ev.preventDefault();
+            var ctx = {};
+            if (this.selected_unit_id) {
+                ctx.default_operating_unit_id = parseInt(this.selected_unit_id);
+            }
+            this.do_action({
+                name: 'CPK Billing Recap Wizard',
+                type: 'ir.actions.act_window',
+                res_model: 'billing.recap.wizard',
+                views: [[false, 'form']],
+                target: 'new',
+                context: ctx,
             });
         }
     });

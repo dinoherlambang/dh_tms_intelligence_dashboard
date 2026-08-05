@@ -1,9 +1,16 @@
-/* TMS Fleet & Tire Intelligence Dashboard Stylesheet (SCSS/CSS) */
+/* Fix Odoo 13 Action Manager & Client Action Scroll Containers */
+.o_action_manager,
+.o_action_manager > .o_client_action,
+.o_content {
+    overflow-y: auto !important;
+}
 
 .tms-intelligence-dashboard-container {
     padding: 20px;
     background-color: #f4f6f9;
-    min-height: 100vh;
+    min-height: 100%;
+    height: auto;
+    overflow-y: auto !important;
     font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
     color: #212529;
 }
