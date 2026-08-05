@@ -16,9 +16,12 @@ odoo.define('dh_tms_intelligence_dashboard.Dashboard', function (require) {
             'click .js_clear_wear_filter': '_onClearWearFilter',
             'click .js_export_pdf_report': '_onExportPdfReport',
 
-            // Brand Panel Interactive Filters
+            // Brand Panel Interactive Filters & Duel Handlers
             'change .js_filter_brand_category': '_onFilterBrandCategory',
             'change .js_filter_brand_sort': '_onSortBrandPerformance',
+            'change .js_select_brand_duel_a': '_onSelectBrandDuelA',
+            'change .js_select_brand_duel_b': '_onSelectBrandDuelB',
+            'click .js_toggle_pattern_expand': '_onTogglePatternExpand',
 
             // Interactive Drilldown Handlers
             'click .js_drilldown_fleet': '_onDrilldownFleet',
@@ -47,6 +50,10 @@ odoo.define('dh_tms_intelligence_dashboard.Dashboard', function (require) {
             this.brand_performance = [];
             this.filtered_brand_performance = [];
             this.best_brand_leader = '-';
+            this.brand_duel_a = false;
+            this.brand_duel_b = false;
+            this.selected_brand_a_name = '';
+            this.selected_brand_b_name = '';
             this.rotation_recommendations = [];
             this.replacement_forecast = [];
             this.filters = {};
@@ -54,7 +61,7 @@ odoo.define('dh_tms_intelligence_dashboard.Dashboard', function (require) {
             this.selected_truck_type_id = false;
             this.active_filter_state = false;
             this.active_brand_category = '';
-            this.active_brand_sort = 'mileage';
+            this.active_brand_sort = 'wear_rate';
         },
 
         willStart: function () {
@@ -120,25 +127,73 @@ odoo.define('dh_tms_intelligence_dashboard.Dashboard', function (require) {
                 list = list.filter(function (b) { return b.retread_count > 0; });
             }
 
-            // 2. Sort Dimension
-            if (self.active_brand_sort === 'cpkm') {
+            // 2. Multi-Dimensional Sort (No Price Metrics)
+            if (self.active_brand_sort === 'wear_rate') {
                 list.sort(function (a, b) {
-                    if (a.cpkm_val === 0) return 1;
-                    if (b.cpkm_val === 0) return -1;
-                    return a.cpkm_val - b.cpkm_val;
+                    return b.km_per_mm - a.km_per_mm;
+                });
+            } else if (self.active_brand_sort === 'retread') {
+                list.sort(function (a, b) {
+                    return b.retread_pct - a.retread_pct;
+                });
+            } else if (self.active_brand_sort === 'failure') {
+                list.sort(function (a, b) {
+                    return a.failure_pct - b.failure_pct;
                 });
             } else if (self.active_brand_sort === 'count') {
                 list.sort(function (a, b) {
                     return b.count - a.count;
                 });
             } else {
-                // Sort by mileage (Default)
+                // Sort by Mileage (KM)
                 list.sort(function (a, b) {
                     return b.avg_km - a.avg_km;
                 });
             }
 
             self.filtered_brand_performance = list;
+
+            // Preserve Brand Duel selection references
+            if (self.selected_brand_a_name) {
+                self.brand_duel_a = list.find(function (b) { return b.brand === self.selected_brand_a_name; }) || false;
+            }
+            if (self.selected_brand_b_name) {
+                self.brand_duel_b = list.find(function (b) { return b.brand === self.selected_brand_b_name; }) || false;
+            }
+        },
+
+        _onSelectBrandDuelA: function (ev) {
+            ev.preventDefault();
+            var bName = $(ev.currentTarget).val();
+            this.selected_brand_a_name = bName;
+            this.brand_duel_a = (this.brand_performance || []).find(function (b) { return b.brand === bName; }) || false;
+            this.renderElement();
+        },
+
+        _onSelectBrandDuelB: function (ev) {
+            ev.preventDefault();
+            var bName = $(ev.currentTarget).val();
+            this.selected_brand_b_name = bName;
+            this.brand_duel_b = (this.brand_performance || []).find(function (b) { return b.brand === bName; }) || false;
+            this.renderElement();
+        },
+
+        _onTogglePatternExpand: function (ev) {
+            ev.preventDefault();
+            ev.stopPropagation();
+            var bName = $(ev.currentTarget).data('brand-name');
+            if (!bName) return;
+            var sanitizeId = bName.replace(/\s+/g, '_');
+            var $row = this.$('#pattern_row_' + sanitizeId);
+            if ($row.length) {
+                $row.toggleClass('d-none');
+                var $icon = $(ev.currentTarget).find('i');
+                if ($row.hasClass('d-none')) {
+                    $icon.removeClass('fa-minus-square-o').addClass('fa-plus-square-o');
+                } else {
+                    $icon.removeClass('fa-plus-square-o').addClass('fa-minus-square-o');
+                }
+            }
         },
 
         _onFilterBrandCategory: function (ev) {
@@ -150,7 +205,7 @@ odoo.define('dh_tms_intelligence_dashboard.Dashboard', function (require) {
 
         _onSortBrandPerformance: function (ev) {
             ev.preventDefault();
-            this.active_brand_sort = $(ev.currentTarget).val() || 'mileage';
+            this.active_brand_sort = $(ev.currentTarget).val() || 'wear_rate';
             this._applyBrandFilterAndSort();
             this.renderElement();
         },

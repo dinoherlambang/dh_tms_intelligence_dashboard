@@ -378,10 +378,10 @@
                 </div>
             </div>
 
-            <!-- Bottom Section: Advanced Brand Performance Benchmarking & Interactive Panel Filter -->
-            <div class="dashboard-panel">
+            <!-- Bottom Section: Multi-Dimensional Tire Brand & Pattern Performance Benchmarking -->
+            <div class="dashboard-panel mb-4">
                 <div class="panel-header" style="flex-wrap: wrap; gap: 10px;">
-                    <h3><i class="fa fa-bar-chart mr-2"/>Tire Brand &amp; Pattern Performance Benchmarks</h3>
+                    <h3><i class="fa fa-bar-chart mr-2"/>Tire Brand &amp; Tread Pattern Performance Duel</h3>
                     <div style="display: flex; align-items: center; gap: 8px;">
                         <!-- Category Filter Dropdown -->
                         <select class="form-control form-control-sm js_filter_brand_category" style="max-width: 150px;">
@@ -390,65 +390,297 @@
                             <option value="retread" t-att-selected="widget.active_brand_category == 'retread' ? 'selected' : None">Retread Tires</option>
                         </select>
 
-                        <!-- Sorting Dimension Dropdown -->
-                        <select class="form-control form-control-sm js_filter_brand_sort" style="max-width: 170px;">
-                            <option value="mileage" t-att-selected="widget.active_brand_sort == 'mileage' ? 'selected' : None">Sort by Mileage (High)</option>
-                            <option value="cpkm" t-att-selected="widget.active_brand_sort == 'cpkm' ? 'selected' : None">Sort by CPKM (Best Leader)</option>
+                        <!-- Multi-Dimensional Sorting Dropdown (No Price Metrics) -->
+                        <select class="form-control form-control-sm js_filter_brand_sort" style="max-width: 190px;">
+                            <option value="wear_rate" t-att-selected="widget.active_brand_sort == 'wear_rate' ? 'selected' : None">Sort by Wear Index (KM/mm)</option>
+                            <option value="mileage" t-att-selected="widget.active_brand_sort == 'mileage' ? 'selected' : None">Sort by Avg Mileage (KM)</option>
+                            <option value="retread" t-att-selected="widget.active_brand_sort == 'retread' ? 'selected' : None">Sort by Retreadability %</option>
+                            <option value="failure" t-att-selected="widget.active_brand_sort == 'failure' ? 'selected' : None">Sort by Low Failure Risk</option>
                             <option value="count" t-att-selected="widget.active_brand_sort == 'count' ? 'selected' : None">Sort by Serials Count</option>
                         </select>
 
                         <span class="badge badge-primary"><t t-esc="widget.filtered_brand_performance.length"/> Brands</span>
                         <t t-if="widget.best_brand_leader &amp;&amp; widget.best_brand_leader != '-'">
-                            <span class="badge badge-success">Top Leader: <t t-esc="widget.best_brand_leader"/></span>
+                            <span class="badge badge-success">Top Wear Index: <t t-esc="widget.best_brand_leader"/></span>
                         </t>
                     </div>
                 </div>
 
-                <table class="brand-table">
-                    <thead>
-                        <tr>
-                            <th style="width: 22%;">Tire Brand</th>
-                            <th style="width: 40%;">Average Mileage Comparison (KM)</th>
-                            <th style="width: 18%;" class="text-right">Cost per KM (CPKM)</th>
-                            <th style="width: 20%;" class="text-center">Performance Rating</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        <t t-if="widget.filtered_brand_performance &amp;&amp; widget.filtered_brand_performance.length">
-                            <t t-foreach="widget.filtered_brand_performance" t-as="b">
-                                <tr class="js_drilldown_brand" t-att-data-brand-id="b.brand_id" t-att-data-brand-name="b.brand" style="cursor: pointer;" title="Click to view tire inventory for this brand">
-                                    <td>
-                                        <strong><t t-esc="b.brand"/></strong>
-                                        <span class="badge badge-light ml-1"><t t-esc="b.count"/> Serials</span>
-                                    </td>
-                                    <td>
-                                        <div style="display: flex; align-items: center; gap: 10px;">
-                                            <div style="flex: 1; height: 16px; background-color: #e9ecef; border-radius: 8px; overflow: hidden;">
-                                                <div t-attf-style="width: #{b.bar_pct}%; height: 100%; background: linear-gradient(90deg, #1e62d0, #28a745); border-radius: 8px; transition: width 0.5s ease;"/>
-                                            </div>
-                                            <span style="font-weight: bold; font-size: 11px; min-width: 70px; text-align: right;">
-                                                <t t-esc="b.avg_km ? b.avg_km.toLocaleString() : '0'"/> km
-                                            </span>
-                                        </div>
-                                    </td>
-                                    <td class="text-right font-weight-bold text-success"><t t-esc="b.cost_per_km"/></td>
-                                    <td class="text-center">
-                                        <span t-attf-class="badge #{b.badge_class}">
-                                            <t t-esc="b.badge_text"/>
+                <!-- Interactive 1-on-1 Brand Duel Selector Widget -->
+                <div class="brand-duel-container p-3 mb-4" style="background: #f8f9fa; border-radius: 8px; border: 1px solid #e9ecef;">
+                    <h4 style="font-size: 14px; font-weight: 700; color: #1e62d0; margin-bottom: 12px;">
+                        ⚔️ Interactive Head-to-Head Brand Duel Comparison
+                    </h4>
+                    <div class="d-flex flex-wrap align-items-center mb-3" style="gap: 12px;">
+                        <div style="flex: 1; min-width: 180px;">
+                            <label style="font-size: 11px; font-weight: 700; color: #6c757d; margin-bottom: 2px;">BRAND A</label>
+                            <select class="form-control form-control-sm js_select_brand_duel_a">
+                                <option value="">-- Select Brand A --</option>
+                                <t t-foreach="widget.brand_performance" t-as="b">
+                                    <option t-att-value="b.brand" t-att-selected="widget.brand_duel_a &amp;&amp; widget.brand_duel_a.brand == b.brand ? 'selected' : None">
+                                        <t t-esc="b.brand"/> (<t t-esc="b.count"/> serials)
+                                    </option>
+                                </t>
+                            </select>
+                        </div>
+                        <div class="text-center font-weight-bold" style="font-size: 16px; color: #dc3545; padding-top: 16px;">VS</div>
+                        <div style="flex: 1; min-width: 180px;">
+                            <label style="font-size: 11px; font-weight: 700; color: #6c757d; margin-bottom: 2px;">BRAND B</label>
+                            <select class="form-control form-control-sm js_select_brand_duel_b">
+                                <option value="">-- Select Brand B --</option>
+                                <t t-foreach="widget.brand_performance" t-as="b">
+                                    <option t-att-value="b.brand" t-att-selected="widget.brand_duel_b &amp;&amp; widget.brand_duel_b.brand == b.brand ? 'selected' : None">
+                                        <t t-esc="b.brand"/> (<t t-esc="b.count"/> serials)
+                                    </option>
+                                </t>
+                            </select>
+                        </div>
+                    </div>
+
+                    <!-- Dual Comparison Result Cards with Mini Graphs -->
+                    <t t-if="widget.brand_duel_a &amp;&amp; widget.brand_duel_b">
+                        <div class="duel-results-grid" style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px;">
+                            <!-- Metric 1: Wear Rate Index with Mini Comparison Bar Graph -->
+                            <div class="duel-card p-2" style="background: #ffffff; border-radius: 6px; border: 1px solid #e9ecef;">
+                                <div style="font-size: 11px; font-weight: 700; color: #6c757d;" class="text-center">RUBBER WEAR INDEX</div>
+                                <div class="mt-2" style="font-size: 11px;">
+                                    <div class="d-flex justify-content-between align-items-center mb-1">
+                                        <span><strong><t t-esc="widget.brand_duel_a.brand"/></strong>:</span>
+                                        <span t-att-class="widget.brand_duel_a.km_per_mm &gt;= widget.brand_duel_b.km_per_mm ? 'text-success font-weight-bold' : 'text-dark'">
+                                            <t t-esc="widget.brand_duel_a.km_per_mm.toLocaleString()"/> km/mm
                                         </span>
+                                    </div>
+                                    <div style="height: 6px; background-color: #e9ecef; border-radius: 3px; overflow: hidden; margin-bottom: 6px;">
+                                        <div t-attf-style="width: #{widget.brand_duel_a.bar_pct}%; height: 100%; background-color: #1e62d0; border-radius: 3px;"/>
+                                    </div>
+
+                                    <div class="d-flex justify-content-between align-items-center mb-1">
+                                        <span><strong><t t-esc="widget.brand_duel_b.brand"/></strong>:</span>
+                                        <span t-att-class="widget.brand_duel_b.km_per_mm &gt;= widget.brand_duel_a.km_per_mm ? 'text-success font-weight-bold' : 'text-dark'">
+                                            <t t-esc="widget.brand_duel_b.km_per_mm.toLocaleString()"/> km/mm
+                                        </span>
+                                    </div>
+                                    <div style="height: 6px; background-color: #e9ecef; border-radius: 3px; overflow: hidden;">
+                                        <div t-attf-style="width: #{widget.brand_duel_b.bar_pct}%; height: 100%; background-color: #17a2b8; border-radius: 3px;"/>
+                                    </div>
+                                </div>
+                                <div class="text-center mt-2">
+                                    <span class="badge badge-success">
+                                        🏆 Winner: <t t-esc="widget.brand_duel_a.km_per_mm &gt;= widget.brand_duel_b.km_per_mm ? widget.brand_duel_a.brand : widget.brand_duel_b.brand"/>
+                                    </span>
+                                </div>
+                            </div>
+
+                            <!-- Metric 2: Best Axle Fit & Distribution Sparkline -->
+                            <div class="duel-card p-2 text-center" style="background: #ffffff; border-radius: 6px; border: 1px solid #e9ecef;">
+                                <div style="font-size: 11px; font-weight: 700; color: #6c757d;">AXLE SUITABILITY</div>
+                                <div class="d-flex justify-content-around mt-2" style="font-size: 12px; font-weight: 700;">
+                                    <div>
+                                        <small style="color: #6c757d;"><t t-esc="widget.brand_duel_a.brand"/></small><br/>
+                                        <span class="text-primary"><t t-esc="widget.brand_duel_a.best_axle"/></span>
+                                    </div>
+                                    <div>
+                                        <small style="color: #6c757d;"><t t-esc="widget.brand_duel_b.brand"/></small><br/>
+                                        <span class="text-info"><t t-esc="widget.brand_duel_b.best_axle"/></span>
+                                    </div>
+                                </div>
+                                <div class="badge badge-info mt-2">Position Suitability</div>
+                            </div>
+
+                            <!-- Metric 3: Casing Retreadability Graph -->
+                            <div class="duel-card p-2" style="background: #ffffff; border-radius: 6px; border: 1px solid #e9ecef;">
+                                <div style="font-size: 11px; font-weight: 700; color: #6c757d;" class="text-center">RETREADABILITY %</div>
+                                <div class="mt-2" style="font-size: 11px;">
+                                    <div class="d-flex justify-content-between align-items-center mb-1">
+                                        <span><strong><t t-esc="widget.brand_duel_a.brand"/></strong>:</span>
+                                        <span t-att-class="widget.brand_duel_a.retread_pct &gt;= widget.brand_duel_b.retread_pct ? 'text-success font-weight-bold' : 'text-dark'">
+                                            <t t-esc="widget.brand_duel_a.retread_pct"/>%
+                                        </span>
+                                    </div>
+                                    <div style="height: 6px; background-color: #e9ecef; border-radius: 3px; overflow: hidden; margin-bottom: 6px;">
+                                        <div t-attf-style="width: #{widget.brand_duel_a.retread_pct}%; height: 100%; background-color: #28a745; border-radius: 3px;"/>
+                                    </div>
+
+                                    <div class="d-flex justify-content-between align-items-center mb-1">
+                                        <span><strong><t t-esc="widget.brand_duel_b.brand"/></strong>:</span>
+                                        <span t-att-class="widget.brand_duel_b.retread_pct &gt;= widget.brand_duel_a.retread_pct ? 'text-success font-weight-bold' : 'text-dark'">
+                                            <t t-esc="widget.brand_duel_b.retread_pct"/>%
+                                        </span>
+                                    </div>
+                                    <div style="height: 6px; background-color: #e9ecef; border-radius: 3px; overflow: hidden;">
+                                        <div t-attf-style="width: #{widget.brand_duel_b.retread_pct}%; height: 100%; background-color: #20c997; border-radius: 3px;"/>
+                                    </div>
+                                </div>
+                                <div class="text-center mt-2">
+                                    <span class="badge badge-success">
+                                        🏆 Winner: <t t-esc="widget.brand_duel_a.retread_pct &gt;= widget.brand_duel_b.retread_pct ? widget.brand_duel_a.brand : widget.brand_duel_b.brand"/>
+                                    </span>
+                                </div>
+                            </div>
+
+                            <!-- Metric 4: Premature Scrap Risk Sparkline -->
+                            <div class="duel-card p-2" style="background: #ffffff; border-radius: 6px; border: 1px solid #e9ecef;">
+                                <div style="font-size: 11px; font-weight: 700; color: #6c757d;" class="text-center">PREMATURE SCRAP RISK</div>
+                                <div class="mt-2" style="font-size: 11px;">
+                                    <div class="d-flex justify-content-between align-items-center mb-1">
+                                        <span><strong><t t-esc="widget.brand_duel_a.brand"/></strong>:</span>
+                                        <span t-att-class="widget.brand_duel_a.failure_pct &lt;= widget.brand_duel_b.failure_pct ? 'text-success font-weight-bold' : 'text-danger'">
+                                            <t t-esc="widget.brand_duel_a.failure_pct"/>%
+                                        </span>
+                                    </div>
+                                    <div style="height: 6px; background-color: #e9ecef; border-radius: 3px; overflow: hidden; margin-bottom: 6px;">
+                                        <div t-attf-style="width: #{widget.brand_duel_a.failure_pct}%; height: 100%; background-color: #dc3545; border-radius: 3px;"/>
+                                    </div>
+
+                                    <div class="d-flex justify-content-between align-items-center mb-1">
+                                        <span><strong><t t-esc="widget.brand_duel_b.brand"/></strong>:</span>
+                                        <span t-att-class="widget.brand_duel_b.failure_pct &lt;= widget.brand_duel_a.failure_pct ? 'text-success font-weight-bold' : 'text-danger'">
+                                            <t t-esc="widget.brand_duel_b.failure_pct"/>%
+                                        </span>
+                                    </div>
+                                    <div style="height: 6px; background-color: #e9ecef; border-radius: 3px; overflow: hidden;">
+                                        <div t-attf-style="width: #{widget.brand_duel_b.failure_pct}%; height: 100%; background-color: #fd7e14; border-radius: 3px;"/>
+                                    </div>
+                                </div>
+                                <div class="text-center mt-2">
+                                    <span class="badge badge-success">
+                                        🛡️ Safer: <t t-esc="widget.brand_duel_a.failure_pct &lt;= widget.brand_duel_b.failure_pct ? widget.brand_duel_a.brand : widget.brand_duel_b.brand"/>
+                                    </span>
+                                </div>
+                            </div>
+                        </div>
+                    </t>
+                    <t t-else="">
+                        <div class="text-center text-muted p-2" style="font-size: 12px;">
+                            <i class="fa fa-hand-o-up mr-1"/> Select Brand A and Brand B above to launch side-by-side performance duel graph.
+                        </div>
+                    </t>
+                </div>
+
+                <!-- Multi-Aspect Performance Benchmarking Table with Mini Sparkline Graphs -->
+                <div class="table-responsive">
+                    <table class="brand-table">
+                        <thead>
+                            <tr>
+                                <th style="width: 16%;">Tire Brand</th>
+                                <th style="width: 24%;">Rubber Wear Index (KM / mm)</th>
+                                <th style="width: 20%;">Axle Fit Sparkbar (Steer/Drive/Trailer)</th>
+                                <th style="width: 16%;">Mileage Bullet Gauge</th>
+                                <th style="width: 12%;" class="text-right">Retreadability %</th>
+                                <th style="width: 12%;" class="text-center">Reliability Health</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <t t-if="widget.filtered_brand_performance &amp;&amp; widget.filtered_brand_performance.length">
+                                <t t-foreach="widget.filtered_brand_performance" t-as="b">
+                                    <tr class="js_drilldown_brand" t-att-data-brand-id="b.brand_id" t-att-data-brand-name="b.brand" style="cursor: pointer;" title="Click to view tire inventory for this brand">
+                                        <td>
+                                            <span class="js_toggle_pattern_expand text-primary mr-1" t-att-data-brand-name="b.brand" title="Click to expand tread pattern breakdown">
+                                                <i class="fa fa-plus-square-o"/>
+                                            </span>
+                                            <strong><t t-esc="b.brand"/></strong>
+                                            <span class="badge badge-light ml-1"><t t-esc="b.count"/> Serials</span>
+                                        </td>
+
+                                        <!-- Aspect 1: Wear Index Progress Bar -->
+                                        <td>
+                                            <div style="display: flex; align-items: center; gap: 8px;">
+                                                <div style="flex: 1; height: 14px; background-color: #e9ecef; border-radius: 7px; overflow: hidden;">
+                                                    <div t-attf-style="width: #{b.bar_pct}%; height: 100%; background: linear-gradient(90deg, #1e62d0, #28a745); border-radius: 7px; transition: width 0.5s ease;"/>
+                                                </div>
+                                                <span style="font-weight: 800; font-size: 11px; min-width: 75px; text-align: right;">
+                                                    <t t-esc="b.km_per_mm ? b.km_per_mm.toLocaleString() : '0'"/> km/mm
+                                                </span>
+                                            </div>
+                                        </td>
+
+                                        <!-- Aspect 2: Axle Wear Distribution Sparkbar -->
+                                        <td>
+                                            <div style="display: flex; flex-direction: column; gap: 2px;">
+                                                <div style="display: flex; height: 10px; border-radius: 5px; overflow: hidden; background: #e9ecef;" title="Blue: Steer | Green: Drive | Yellow: Trailer">
+                                                    <div t-attf-style="width: #{b.steer_spark_pct}%; background-color: #1e62d0;" title="Steer: #{b.steer_km_per_mm} km/mm"/>
+                                                    <div t-attf-style="width: #{b.drive_spark_pct}%; background-color: #28a745;" title="Drive: #{b.drive_km_per_mm} km/mm"/>
+                                                    <div t-attf-style="width: #{b.trailer_spark_pct}%; background-color: #ffc107;" title="Trailer: #{b.trailer_km_per_mm} km/mm"/>
+                                                </div>
+                                                <div style="font-size: 10px; color: #6c757d; display: flex; justify-content: space-between;">
+                                                    <span>Optimal: <strong class="text-dark"><t t-esc="b.best_axle"/></strong></span>
+                                                </div>
+                                            </div>
+                                        </td>
+
+                                        <!-- Aspect 3: Lifespan Distance Bullet Gauge (Target 100k KM) -->
+                                        <td>
+                                            <div style="display: flex; flex-direction: column; gap: 2px;">
+                                                <div style="position: relative; height: 12px; background-color: #e9ecef; border-radius: 6px; overflow: hidden;">
+                                                    <div t-attf-style="width: #{b.target_km_pct}%; height: 100%; background-color: #17a2b8; border-radius: 6px;"/>
+                                                </div>
+                                                <div style="font-size: 10px; font-weight: 700; color: #495057;">
+                                                    Avg: <t t-esc="b.avg_km ? b.avg_km.toLocaleString() : '0'"/> km
+                                                </div>
+                                            </div>
+                                        </td>
+
+                                        <!-- Aspect 4: Retreadability % -->
+                                        <td class="text-right">
+                                            <div style="display: flex; flex-direction: column; align-items: flex-end; gap: 2px;">
+                                                <span class="font-weight-bold text-success" style="font-size: 12px;"><t t-esc="b.retread_pct"/>%</span>
+                                                <div style="width: 50px; height: 6px; background: #e9ecef; border-radius: 3px; overflow: hidden;">
+                                                    <div t-attf-style="width: #{b.retread_pct}%; height: 100%; background: #28a745;"/>
+                                                </div>
+                                            </div>
+                                        </td>
+
+                                        <!-- Aspect 5: Reliability & Status Sparkline -->
+                                        <td class="text-center">
+                                            <div style="display: flex; flex-direction: column; align-items: center; gap: 2px;">
+                                                <div style="width: 70px; display: flex; height: 6px; border-radius: 3px; overflow: hidden; background: #e9ecef;">
+                                                    <div t-attf-style="width: #{b.healthy_scrap_pct}%; background-color: #28a745;" title="Healthy Wear: #{b.healthy_scrap_pct}%"/>
+                                                    <div t-attf-style="width: #{b.failure_pct}%; background-color: #dc3545;" title="Premature Risk: #{b.failure_pct}%"/>
+                                                </div>
+                                                <span t-attf-class="badge #{b.badge_class}" style="font-size: 10px;">
+                                                    <t t-esc="b.badge_text"/>
+                                                </span>
+                                            </div>
+                                        </td>
+                                    </tr>
+
+                                    <!-- Nested Pattern Level Breakdown Sub-Table with Mini Graph Bars -->
+                                    <tr t-attf-id="pattern_row_#{b.brand.replace(' ', '_')}" class="d-none pattern-breakdown-row" style="background-color: #f8f9fa;">
+                                        <td colspan="6" class="p-2 pl-4">
+                                            <div style="font-size: 11px; font-weight: 700; color: #495057; margin-bottom: 6px;">
+                                                📦 Tread Pattern &amp; Model Level Sparklines for <t t-esc="b.brand"/>:
+                                            </div>
+                                            <div class="d-flex flex-wrap" style="gap: 10px;">
+                                                <t t-foreach="b.patterns" t-as="pat">
+                                                    <div class="p-2" style="background: #ffffff; border: 1px solid #dee2e6; border-radius: 6px; font-size: 11px; min-width: 220px;">
+                                                        <div class="d-flex justify-content-between font-weight-bold mb-1">
+                                                            <span><t t-esc="pat.pattern"/></span>
+                                                            <span class="text-primary"><t t-esc="pat.km_per_mm.toLocaleString()"/> km/mm</span>
+                                                        </div>
+                                                        <div style="height: 6px; background-color: #e9ecef; border-radius: 3px; overflow: hidden; margin-bottom: 4px;">
+                                                            <div t-attf-style="width: #{pat.pattern_bar_pct}%; height: 100%; background: linear-gradient(90deg, #1e62d0, #28a745); border-radius: 3px;"/>
+                                                        </div>
+                                                        <div class="d-flex justify-content-between text-muted" style="font-size: 10px;">
+                                                            <span><t t-esc="pat.count"/> units</span>
+                                                            <span>Avg <t t-esc="pat.avg_km.toLocaleString()"/> km</span>
+                                                        </div>
+                                                    </div>
+                                                </t>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                </t>
+                            </t>
+                            <t t-else="">
+                                <tr>
+                                    <td colspan="6" class="text-center text-muted p-3">
+                                        No brand performance records matching active panel filter criteria.
                                     </td>
                                 </tr>
                             </t>
-                        </t>
-                        <t t-else="">
-                            <tr>
-                                <td colspan="4" class="text-center text-muted p-3">
-                                    No brand performance records matching active panel filter criteria.
-                                </td>
-                            </tr>
-                        </t>
-                    </tbody>
-                </table>
+                        </tbody>
+                    </table>
+                </div>
             </div>
         </div>
     </t>
