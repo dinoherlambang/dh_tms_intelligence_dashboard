@@ -325,3 +325,114 @@
     box-shadow: 0 4px 10px rgba(0, 0, 0, 0.06);
 }
 
+/* Responsive Breakpoints & Mobile Optimization */
+
+/* Tablets & Small Laptops (max-width: 991.98px) */
+@media (max-width: 991.98px) {
+    .dashboard-header-bar {
+        flex-direction: column;
+        align-items: stretch;
+        gap: 12px;
+    }
+
+    .dashboard-controls {
+        flex-wrap: wrap;
+        width: 100%;
+    }
+
+    .kpi-cards-grid {
+        grid-template-columns: repeat(2, 1fr);
+        gap: 14px;
+    }
+
+    .dashboard-main-grid {
+        grid-template-columns: 1fr;
+        gap: 16px;
+    }
+
+    .financial-metrics-grid {
+        grid-template-columns: repeat(2, 1fr) !important;
+        gap: 12px !important;
+    }
+
+    .coupling-metrics-grid {
+        grid-template-columns: repeat(2, 1fr) !important;
+        gap: 12px !important;
+    }
+}
+
+/* Smartphones & Small Tablets (max-width: 767.98px) */
+@media (max-width: 767.98px) {
+    .tms-intelligence-dashboard-container {
+        padding: 10px;
+    }
+
+    .dashboard-header-bar {
+        padding: 12px 16px;
+    }
+
+    .dashboard-title-box h2 {
+        font-size: 18px;
+    }
+
+    .dashboard-title-box p {
+        font-size: 12px;
+    }
+
+    .dashboard-controls {
+        flex-direction: column;
+        align-items: stretch;
+        gap: 8px;
+    }
+
+    .dashboard-controls select,
+    .dashboard-controls button {
+        max-width: 100% !important;
+        width: 100% !important;
+    }
+
+    .kpi-cards-grid {
+        grid-template-columns: 1fr;
+        gap: 10px;
+    }
+
+    .kpi-card {
+        padding: 14px;
+    }
+
+    .vehicle-cards-container {
+        grid-template-columns: 1fr;
+        max-height: 320px;
+    }
+
+    .financial-metrics-grid,
+    .coupling-metrics-grid {
+        grid-template-columns: 1fr !important;
+        gap: 10px !important;
+    }
+
+    .donut-chart-container {
+        flex-direction: column;
+        gap: 16px;
+    }
+
+    .panel-header {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 8px;
+    }
+
+    .panel-header button,
+    .panel-header select {
+        width: 100%;
+        max-width: 100% !important;
+    }
+
+    .brand-table th, 
+    .brand-table td {
+        padding: 8px 6px;
+        font-size: 11px;
+    }
+}
+
+
