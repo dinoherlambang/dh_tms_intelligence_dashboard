@@ -12,16 +12,30 @@ odoo.define('dh_tms_intelligence_dashboard.Dashboard', function (require) {
             'click .js_open_chassis_diagram': '_onOpenChassisDiagram',
             'change .js_filter_unit': '_onChangeFilter',
             'change .js_filter_truck_type': '_onChangeFilter',
-            'click .js_filter_wear_state': '_onFilterWearState',
-            'click .js_clear_wear_filter': '_onClearWearFilter',
             'click .js_export_pdf_report': '_onExportPdfReport',
 
-            // Brand Panel Interactive Filters & Duel Handlers
-            'change .js_filter_brand_category': '_onFilterBrandCategory',
-            'change .js_filter_brand_sort': '_onSortBrandPerformance',
-            'change .js_select_brand_duel_a': '_onSelectBrandDuelA',
-            'change .js_select_brand_duel_b': '_onSelectBrandDuelB',
-            'click .js_toggle_pattern_expand': '_onTogglePatternExpand',
+            // Tire Monitoring Report Handlers & Actions
+            'click .js_open_monitoring_wizard': '_onOpenMonitoringWizard',
+            'click .js_open_monitoring_list': '_onOpenMonitoringList',
+            'click .js_create_monitoring_rec': '_onCreateMonitoringRec',
+            'click .js_open_monitoring_detail': '_onOpenMonitoringDetail',
+
+            // Multi-Tab Chart Selection & Period Filters
+            'click .js_select_chart_tab': '_onSelectChartTab',
+            'change .js_filter_monitoring_year': '_onChangeMonitoringYear',
+            'change .js_filter_monitoring_period': '_onChangeMonitoringPeriod',
+            'click .js_clear_period_filter': '_onClearPeriodFilter',
+
+            // Tire Monitoring 2-Column Search & Checkbox Filters
+            'change .js_check_vehicle_filter': '_onCheckVehicleFilter',
+            'change .js_check_brand_filter': '_onCheckBrandFilter',
+            'change .js_check_size_filter': '_onCheckSizeFilter',
+            'keyup .js_search_vehicle_filter': '_onSearchVehicleFilter',
+            'keyup .js_search_brand_filter': '_onSearchBrandFilter',
+            'keyup .js_search_size_filter': '_onSearchSizeFilter',
+            'click .js_clear_vehicle_filter': '_onClearVehicleFilter',
+            'click .js_clear_brand_filter': '_onClearBrandFilter',
+            'click .js_clear_size_filter': '_onClearSizeFilter',
 
             // Interactive Drilldown Handlers
             'click .js_drilldown_fleet': '_onDrilldownFleet',
@@ -29,7 +43,6 @@ odoo.define('dh_tms_intelligence_dashboard.Dashboard', function (require) {
             'click .js_drilldown_wear_alerts': '_onDrilldownWearAlerts',
             'click .js_drilldown_psi_alerts': '_onDrilldownPSIAlerts',
             'click .js_drilldown_cpkm': '_onDrilldownCPKM',
-            'click .js_drilldown_brand': '_onDrilldownBrand',
             'click .js_open_trailer_exchange': '_onOpenTrailerExchange',
             'click .js_drilldown_trailer_exchanges': '_onDrilldownTrailerExchanges',
             'click .js_open_billing_wizard': '_onOpenBillingWizard',
@@ -38,30 +51,27 @@ odoo.define('dh_tms_intelligence_dashboard.Dashboard', function (require) {
         init: function (parent, action) {
             this._super.apply(this, arguments);
             this.kpis = {};
-            this.wear_distribution = {};
             this.psi_distribution = {};
             this.trailer_coupling_summary = {};
             this.recent_trailer_exchanges = [];
             this.cpk_billing_summary = {};
             this.min_km_deficit_vehicles = [];
-            this.vehicle_grid = [];
-            this.filtered_vehicle_grid = [];
             this.alert_queue = [];
-            this.brand_performance = [];
-            this.filtered_brand_performance = [];
-            this.best_brand_leader = '-';
-            this.brand_duel_a = false;
-            this.brand_duel_b = false;
-            this.selected_brand_a_name = '';
-            this.selected_brand_b_name = '';
             this.rotation_recommendations = [];
             this.replacement_forecast = [];
             this.filters = {};
             this.selected_unit_id = false;
             this.selected_truck_type_id = false;
-            this.active_filter_state = false;
-            this.active_brand_category = '';
-            this.active_brand_sort = 'wear_rate';
+
+            // Tire Monitoring Report Data & Tab / Filter State
+            this.monitoring_report = { records: [], vehicles: [], brands: [], sizes: [], years: [] };
+            this.filtered_monitoring_records = [];
+            this.selected_vehicles = [];
+            this.selected_brands = [];
+            this.selected_sizes = [];
+            this.selected_year = '';
+            this.selected_period = '';
+            this.active_chart_tab = 'rtd'; // 'rtd' or 'mileage'
         },
 
         willStart: function () {
@@ -85,128 +95,540 @@ odoo.define('dh_tms_intelligence_dashboard.Dashboard', function (require) {
             }).then(function (data) {
                 self.filters = data.filters || {};
                 self.kpis = data.kpis || {};
-                self.wear_distribution = data.wear_distribution || {};
                 self.psi_distribution = data.psi_distribution || {};
                 self.trailer_coupling_summary = data.trailer_coupling_summary || {};
                 self.recent_trailer_exchanges = data.recent_trailer_exchanges || [];
                 self.cpk_billing_summary = data.cpk_billing_summary || {};
                 self.min_km_deficit_vehicles = data.min_km_deficit_vehicles || [];
-                self.vehicle_grid = data.vehicle_grid || [];
                 self.alert_queue = data.alert_queue || [];
-                self.brand_performance = data.brand_performance || [];
-                self.best_brand_leader = data.best_brand_leader || '-';
                 self.rotation_recommendations = data.rotation_recommendations || [];
                 self.replacement_forecast = data.replacement_forecast || [];
+                self.monitoring_report = data.monitoring_report || { records: [], vehicles: [], brands: [], sizes: [], years: [] };
 
-                self._applyLocalWearFilter();
-                self._applyBrandFilterAndSort();
+                self._applyMonitoringFilter();
             }).catch(function (error) {
                 console.error('[DH_TMS_DASHBOARD] Error fetching dashboard data:', error);
             });
         },
 
-        _applyLocalWearFilter: function () {
+        _applyMonitoringFilter: function () {
             var self = this;
-            if (!self.active_filter_state) {
-                self.filtered_vehicle_grid = self.vehicle_grid;
-            } else {
-                self.filtered_vehicle_grid = self.vehicle_grid.filter(function (v) {
-                    return v.health_state === self.active_filter_state;
+            var recs = (self.monitoring_report.records || []).slice();
+
+            if (self.selected_year) {
+                recs = recs.filter(function (r) {
+                    return r.monitor_date && r.monitor_date.substring(0, 4) === self.selected_year;
                 });
             }
+
+            if (self.selected_period) {
+                recs = recs.filter(function (r) {
+                    if (!r.monitor_date) return false;
+                    var monthNum = parseInt(r.monitor_date.substring(5, 7));
+                    if (self.selected_period === 'Q1') return monthNum >= 1 && monthNum <= 3;
+                    if (self.selected_period === 'Q2') return monthNum >= 4 && monthNum <= 6;
+                    if (self.selected_period === 'Q3') return monthNum >= 7 && monthNum <= 9;
+                    if (self.selected_period === 'Q4') return monthNum >= 10 && monthNum <= 12;
+                    return monthNum === parseInt(self.selected_period);
+                });
+            }
+
+            if (self.selected_vehicles.length > 0) {
+                recs = recs.filter(function (r) {
+                    return self.selected_vehicles.indexOf(r.vehicle_name) > -1;
+                });
+            }
+
+            if (self.selected_brands.length > 0) {
+                recs = recs.filter(function (r) {
+                    return self.selected_brands.indexOf(r.tire_brand) > -1;
+                });
+            }
+
+            if (self.selected_sizes.length > 0) {
+                recs = recs.filter(function (r) {
+                    return self.selected_sizes.indexOf(r.tire_size) > -1;
+                });
+            }
+
+            self.filtered_monitoring_records = recs;
         },
 
-        _applyBrandFilterAndSort: function () {
+        on_attach_to_dom: function () {
+            this._super.apply(this, arguments);
+            this._renderLineChart();
+            this._renderCPKBillingCharts();
+        },
+
+        renderElement: function () {
+            this._super.apply(this, arguments);
+            this._renderLineChart();
+            this._renderCPKBillingCharts();
+            this._restoreCheckboxStates();
+        },
+
+        _restoreCheckboxStates: function () {
             var self = this;
-            var list = (self.brand_performance || []).slice();
-
-            // 1. Filter by Category
-            if (self.active_brand_category === 'original') {
-                list = list.filter(function (b) { return b.original_count > 0; });
-            } else if (self.active_brand_category === 'retread') {
-                list = list.filter(function (b) { return b.retread_count > 0; });
-            }
-
-            // 2. Multi-Dimensional Sort (No Price Metrics)
-            if (self.active_brand_sort === 'wear_rate') {
-                list.sort(function (a, b) {
-                    return b.km_per_mm - a.km_per_mm;
-                });
-            } else if (self.active_brand_sort === 'retread') {
-                list.sort(function (a, b) {
-                    return b.retread_pct - a.retread_pct;
-                });
-            } else if (self.active_brand_sort === 'failure') {
-                list.sort(function (a, b) {
-                    return a.failure_pct - b.failure_pct;
-                });
-            } else if (self.active_brand_sort === 'count') {
-                list.sort(function (a, b) {
-                    return b.count - a.count;
-                });
-            } else {
-                // Sort by Mileage (KM)
-                list.sort(function (a, b) {
-                    return b.avg_km - a.avg_km;
-                });
-            }
-
-            self.filtered_brand_performance = list;
-
-            // Preserve Brand Duel selection references
-            if (self.selected_brand_a_name) {
-                self.brand_duel_a = list.find(function (b) { return b.brand === self.selected_brand_a_name; }) || false;
-            }
-            if (self.selected_brand_b_name) {
-                self.brand_duel_b = list.find(function (b) { return b.brand === self.selected_brand_b_name; }) || false;
-            }
+            this.selected_vehicles.forEach(function (v) {
+                self.$('.js_check_vehicle_filter[value="' + v + '"]').prop('checked', true);
+            });
+            this.selected_brands.forEach(function (b) {
+                self.$('.js_check_brand_filter[value="' + b + '"]').prop('checked', true);
+            });
+            this.selected_sizes.forEach(function (s) {
+                self.$('.js_check_size_filter[value="' + s + '"]').prop('checked', true);
+            });
         },
 
-        _onSelectBrandDuelA: function (ev) {
-            ev.preventDefault();
-            var bName = $(ev.currentTarget).val();
-            this.selected_brand_a_name = bName;
-            this.brand_duel_a = (this.brand_performance || []).find(function (b) { return b.brand === bName; }) || false;
-            this.renderElement();
-        },
+        _renderLineChart: function () {
+            var self = this;
+            var canvas = this.$('#js_tire_monitoring_canvas')[0];
+            if (!canvas) return;
 
-        _onSelectBrandDuelB: function (ev) {
-            ev.preventDefault();
-            var bName = $(ev.currentTarget).val();
-            this.selected_brand_b_name = bName;
-            this.brand_duel_b = (this.brand_performance || []).find(function (b) { return b.brand === bName; }) || false;
-            this.renderElement();
-        },
+            var ctx = canvas.getContext('2d');
+            var records = (self.filtered_monitoring_records || []).slice();
 
-        _onTogglePatternExpand: function (ev) {
-            ev.preventDefault();
-            ev.stopPropagation();
-            var bName = $(ev.currentTarget).data('brand-name');
-            if (!bName) return;
-            var sanitizeId = bName.replace(/\s+/g, '_');
-            var $row = this.$('#pattern_row_' + sanitizeId);
-            if ($row.length) {
-                $row.toggleClass('d-none');
-                var $icon = $(ev.currentTarget).find('i');
-                if ($row.hasClass('d-none')) {
-                    $icon.removeClass('fa-minus-square-o').addClass('fa-plus-square-o');
-                } else {
-                    $icon.removeClass('fa-plus-square-o').addClass('fa-minus-square-o');
+            records.sort(function (a, b) {
+                return (a.monitor_date || '').localeCompare(b.monitor_date || '');
+            });
+
+            var tab = self.active_chart_tab || 'rtd';
+            var mainLabel = 'Remaining Tread Depth (mm)';
+            var datasetColor = '#1e62d0';
+            var unitSuffix = ' mm';
+
+            if (tab === 'mileage') {
+                mainLabel = 'Distance Traveled (KM)';
+                datasetColor = '#28a745';
+                unitSuffix = ' km';
+            } else if (tab === 'wear_pct') {
+                mainLabel = 'Tire Wear Percentage (%)';
+                datasetColor = '#fd7e14';
+                unitSuffix = '%';
+            } else if (tab === 'efficiency') {
+                mainLabel = 'Wear Efficiency (KM / mm)';
+                datasetColor = '#6f42c1';
+                unitSuffix = ' km/mm';
+            } else if (tab === 'psi') {
+                mainLabel = 'Inflation Pressure (PSI)';
+                datasetColor = '#17a2b8';
+                unitSuffix = ' PSI';
+            } else if (tab === 'cpk') {
+                mainLabel = 'Est. Cost per KM (Rp)';
+                datasetColor = '#e83e8c';
+                unitSuffix = ' Rp';
+            }
+
+            if (window.Chart) {
+                if (this.chartInstance) {
+                    this.chartInstance.destroy();
                 }
+
+                var labels = records.map(function (r) { return r.monitor_date || r.serial_no; });
+                var mainData = records.map(function (r) {
+                    if (tab === 'mileage') return r.km_traveled || 0;
+                    if (tab === 'wear_pct') return r.wear_percentage || 0;
+                    if (tab === 'efficiency') return r.km_per_mm || 0;
+                    if (tab === 'psi') return r.psi_monitoring || 0;
+                    if (tab === 'cpk') return r.est_cpk || 0;
+                    return r.rtd_monitoring || 0;
+                });
+
+                var datasets = [
+                    {
+                        label: mainLabel,
+                        data: mainData.length ? mainData : [0],
+                        borderColor: datasetColor,
+                        backgroundColor: 'rgba(30, 98, 208, 0.05)',
+                        pointBackgroundColor: datasetColor,
+                        pointBorderColor: '#ffffff',
+                        pointHoverBackgroundColor: '#ffffff',
+                        pointHoverBorderColor: datasetColor,
+                        pointRadius: 5,
+                        pointHoverRadius: 7,
+                        fill: true,
+                        lineTension: 0.3,
+                    }
+                ];
+
+                if (labels.length) {
+                    if (tab === 'rtd') {
+                        datasets.push({
+                            label: 'Safety Threshold (3.0 mm)',
+                            data: labels.map(function () { return 3.0; }),
+                            borderColor: '#dc3545',
+                            borderDash: [5, 5],
+                            pointRadius: 0,
+                            fill: false,
+                        });
+                        datasets.push({
+                            label: 'Baseline New (18.0 mm)',
+                            data: labels.map(function () { return 18.0; }),
+                            borderColor: '#28a745',
+                            borderDash: [2, 4],
+                            pointRadius: 0,
+                            fill: false,
+                        });
+                    } else if (tab === 'wear_pct') {
+                        datasets.push({
+                            label: 'Warning Level (50%)',
+                            data: labels.map(function () { return 50.0; }),
+                            borderColor: '#ffc107',
+                            borderDash: [5, 5],
+                            pointRadius: 0,
+                            fill: false,
+                        });
+                        datasets.push({
+                            label: 'Critical Replacement (80%)',
+                            data: labels.map(function () { return 80.0; }),
+                            borderColor: '#dc3545',
+                            borderDash: [3, 3],
+                            pointRadius: 0,
+                            fill: false,
+                        });
+                    } else if (tab === 'psi') {
+                        datasets.push({
+                            label: 'Standard Target (110 PSI)',
+                            data: labels.map(function () { return 110.0; }),
+                            borderColor: '#28a745',
+                            borderDash: [4, 4],
+                            pointRadius: 0,
+                            fill: false,
+                        });
+                        datasets.push({
+                            label: 'Low Pressure Hazard (90 PSI)',
+                            data: labels.map(function () { return 90.0; }),
+                            borderColor: '#dc3545',
+                            borderDash: [5, 5],
+                            pointRadius: 0,
+                            fill: false,
+                        });
+                    }
+                }
+
+                this.chartInstance = new window.Chart(ctx, {
+                    type: 'line',
+                    data: {
+                        labels: labels.length ? labels : ['No Data'],
+                        datasets: datasets
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        legend: {
+                            display: true,
+                            position: 'top',
+                            labels: {
+                                fontColor: '#2c3e50',
+                                fontSize: 11,
+                                usePointStyle: true,
+                                padding: 12
+                            }
+                        },
+                        scales: {
+                            yAxes: [
+                                {
+                                    ticks: { beginAtZero: true },
+                                    scaleLabel: { display: true, labelString: mainLabel }
+                                }
+                            ]
+                        }
+                    }
+                });
+            } else {
+                self._drawCanvasFallbackChart(ctx, canvas, records, tab, mainLabel, datasetColor, unitSuffix);
             }
         },
 
-        _onFilterBrandCategory: function (ev) {
+        _drawCanvasFallbackChart: function (ctx, canvas, records, tab, mainLabel, mainColor, unitSuffix) {
+            var width = canvas.width = canvas.parentElement.offsetWidth || 500;
+            var height = canvas.height = canvas.parentElement.offsetHeight || 320;
+
+            ctx.clearRect(0, 0, width, height);
+
+            var paddingLeft = 60;
+            var paddingRight = 30;
+            var paddingTop = 45;
+            var paddingBottom = 40;
+
+            var plotWidth = width - paddingLeft - paddingRight;
+            var plotHeight = height - paddingTop - paddingBottom;
+
+            var maxVal = 20;
+            if (tab === 'wear_pct') maxVal = 100;
+            else if (tab === 'psi') maxVal = 140;
+            else if (records.length) {
+                var rawVals = records.map(function (r) {
+                    if (tab === 'mileage') return r.km_traveled || 0;
+                    if (tab === 'efficiency') return r.km_per_mm || 0;
+                    if (tab === 'cpk') return r.est_cpk || 0;
+                    return r.rtd_monitoring || 0;
+                });
+                var maxRaw = Math.max.apply(Math, rawVals);
+                maxVal = maxRaw > 0 ? maxRaw * 1.15 : 100;
+            }
+
+            // Draw Top Legends
+            ctx.font = '11px sans-serif';
+            ctx.fillStyle = mainColor;
+            ctx.fillRect(width - 240, 12, 12, 12);
+            ctx.fillStyle = '#2c3e50';
+            ctx.fillText(mainLabel, width - 224, 22);
+
+            // Draw Background Grid
+            ctx.strokeStyle = '#e9ecef';
+            ctx.lineWidth = 1;
+
+            for (var i = 0; i <= 5; i++) {
+                var y = paddingTop + (plotHeight / 5) * i;
+                ctx.beginPath();
+                ctx.moveTo(paddingLeft, y);
+                ctx.lineTo(width - paddingRight, y);
+                ctx.stroke();
+
+                var valLabel = Math.round(maxVal - (maxVal / 5) * i);
+                ctx.fillStyle = '#6c757d';
+                ctx.font = '10px sans-serif';
+                ctx.fillText(valLabel.toLocaleString() + unitSuffix, 5, y + 3);
+            }
+
+            if (!records || !records.length) {
+                ctx.fillStyle = '#6c757d';
+                ctx.font = '14px sans-serif';
+                ctx.textAlign = 'center';
+                ctx.fillText('No telemetry data for active filters', width / 2, height / 2 + 15);
+                return;
+            }
+
+            var points = [];
+            var stepX = plotWidth / (records.length > 1 ? records.length - 1 : 1);
+
+            for (var idx = 0; idx < records.length; idx++) {
+                var rec = records[idx];
+                var x = records.length === 1 ? paddingLeft + plotWidth / 2 : paddingLeft + idx * stepX;
+                var rawVal = 0;
+                if (tab === 'mileage') rawVal = rec.km_traveled || 0;
+                else if (tab === 'wear_pct') rawVal = rec.wear_percentage || 0;
+                else if (tab === 'efficiency') rawVal = rec.km_per_mm || 0;
+                else if (tab === 'psi') rawVal = rec.psi_monitoring || 0;
+                else if (tab === 'cpk') rawVal = rec.est_cpk || 0;
+                else rawVal = rec.rtd_monitoring || 0;
+
+                var val = Math.min(maxVal, Math.max(0, rawVal));
+                var yPoint = paddingTop + plotHeight - (val / maxVal) * plotHeight;
+                points.push({ x: x, y: yPoint, val: rawVal, date: rec.monitor_date, serial: rec.serial_no });
+            }
+
+            // Draw Line
+            ctx.beginPath();
+            ctx.strokeStyle = mainColor;
+            ctx.lineWidth = 2.5;
+            points.forEach(function (pt, index) {
+                if (index === 0) {
+                    ctx.moveTo(pt.x, pt.y);
+                } else {
+                    ctx.lineTo(pt.x, pt.y);
+                }
+            });
+            ctx.stroke();
+
+            // Draw Markers
+            points.forEach(function (pt) {
+                ctx.beginPath();
+                ctx.arc(pt.x, pt.y, 5, 0, 2 * Math.PI);
+                ctx.fillStyle = '#ffffff';
+                ctx.fill();
+                ctx.strokeStyle = mainColor;
+                ctx.lineWidth = 2.5;
+                ctx.stroke();
+
+                ctx.fillStyle = '#2c3e50';
+                ctx.font = 'bold 10px sans-serif';
+                ctx.textAlign = 'center';
+                ctx.fillText(pt.val.toLocaleString() + unitSuffix, pt.x, pt.y - 8);
+            });
+        },
+
+        // --- Event Handlers ---
+
+        _onSelectChartTab: function (ev) {
             ev.preventDefault();
-            this.active_brand_category = $(ev.currentTarget).val() || '';
-            this._applyBrandFilterAndSort();
+            var tab = $(ev.currentTarget).data('tab');
+            if (tab && this.active_chart_tab !== tab) {
+                this.active_chart_tab = tab;
+                this.renderElement();
+            }
+        },
+
+        _onChangeMonitoringYear: function (ev) {
+            this.selected_year = $(ev.currentTarget).val() || '';
+            this._applyMonitoringFilter();
             this.renderElement();
         },
 
-        _onSortBrandPerformance: function (ev) {
+        _onChangeMonitoringPeriod: function (ev) {
+            this.selected_period = $(ev.currentTarget).val() || '';
+            this._applyMonitoringFilter();
+            this.renderElement();
+        },
+
+        _onClearPeriodFilter: function (ev) {
+            if (ev) ev.preventDefault();
+            this.selected_year = '';
+            this.selected_period = '';
+            this.$('.js_filter_monitoring_year').val('');
+            this.$('.js_filter_monitoring_period').val('');
+            this._applyMonitoringFilter();
+            this.renderElement();
+        },
+
+        // --- Event Handlers ---
+
+        _onOpenMonitoringWizard: function (ev) {
             ev.preventDefault();
-            this.active_brand_sort = $(ev.currentTarget).val() || 'wear_rate';
-            this._applyBrandFilterAndSort();
+            this.do_action({
+                name: 'Tire Monitoring Report Wizard',
+                type: 'ir.actions.act_window',
+                res_model: 'tire.monitoring.report.wizard',
+                views: [[false, 'form']],
+                target: 'new',
+            });
+        },
+
+        _onOpenMonitoringList: function (ev) {
+            ev.preventDefault();
+            var domain = [];
+            if (this.selected_unit_id) {
+                domain.push(['vehicle_id.location_id', '=', parseInt(this.selected_unit_id)]);
+            }
+            this.do_action({
+                name: 'Tire Inspection / Monitoring Log',
+                type: 'ir.actions.act_window',
+                res_model: 'dh.tire.monitoring',
+                views: [[false, 'list'], [false, 'form']],
+                domain: domain,
+                target: 'current',
+            });
+        },
+
+        _onCreateMonitoringRec: function (ev) {
+            ev.preventDefault();
+            this.do_action({
+                name: 'Create Tire Monitoring Record',
+                type: 'ir.actions.act_window',
+                res_model: 'dh.tire.monitoring',
+                views: [[false, 'form']],
+                target: 'current',
+            });
+        },
+
+        _onOpenMonitoringDetail: function (ev) {
+            ev.preventDefault();
+            var recId = $(ev.currentTarget).data('id');
+            if (!recId) return;
+            this.do_action({
+                name: 'Tire Monitoring Record',
+                type: 'ir.actions.act_window',
+                res_model: 'dh.tire.monitoring',
+                res_id: parseInt(recId),
+                views: [[false, 'form']],
+                target: 'current',
+            });
+        },
+
+        _onCheckVehicleFilter: function (ev) {
+            var selected = [];
+            this.$('.js_check_vehicle_filter:checked').each(function () {
+                selected.push($(this).val());
+            });
+            this.selected_vehicles = selected;
+            this._applyMonitoringFilter();
+            this.renderElement();
+        },
+
+        _onCheckBrandFilter: function (ev) {
+            var selected = [];
+            this.$('.js_check_brand_filter:checked').each(function () {
+                selected.push($(this).val());
+            });
+            this.selected_brands = selected;
+            this._applyMonitoringFilter();
+            this.renderElement();
+        },
+
+        _onCheckSizeFilter: function (ev) {
+            var selected = [];
+            this.$('.js_check_size_filter:checked').each(function () {
+                selected.push($(this).val());
+            });
+            this.selected_sizes = selected;
+            this._applyMonitoringFilter();
+            this.renderElement();
+        },
+
+        _onSearchVehicleFilter: function (ev) {
+            var term = $(ev.currentTarget).val().toLowerCase();
+            this.$('.vehicle-item-option').each(function () {
+                var txt = $(this).text().toLowerCase();
+                if (txt.indexOf(term) > -1) {
+                    $(this).show();
+                } else {
+                    $(this).hide();
+                }
+            });
+        },
+
+        _onSearchBrandFilter: function (ev) {
+            var term = $(ev.currentTarget).val().toLowerCase();
+            this.$('.brand-item-option').each(function () {
+                var txt = $(this).text().toLowerCase();
+                if (txt.indexOf(term) > -1) {
+                    $(this).show();
+                } else {
+                    $(this).hide();
+                }
+            });
+        },
+
+        _onSearchSizeFilter: function (ev) {
+            var term = $(ev.currentTarget).val().toLowerCase();
+            this.$('.size-item-option').each(function () {
+                var txt = $(this).text().toLowerCase();
+                if (txt.indexOf(term) > -1) {
+                    $(this).show();
+                } else {
+                    $(this).hide();
+                }
+            });
+        },
+
+        _onClearVehicleFilter: function (ev) {
+            if (ev) ev.preventDefault();
+            this.selected_vehicles = [];
+            this.$('.js_check_vehicle_filter').prop('checked', false);
+            this.$('.js_search_vehicle_filter').val('');
+            this.$('.vehicle-item-option').show();
+            this._applyMonitoringFilter();
+            this.renderElement();
+        },
+
+        _onClearBrandFilter: function (ev) {
+            if (ev) ev.preventDefault();
+            this.selected_brands = [];
+            this.$('.js_check_brand_filter').prop('checked', false);
+            this.$('.js_search_brand_filter').val('');
+            this.$('.brand-item-option').show();
+            this._applyMonitoringFilter();
+            this.renderElement();
+        },
+
+        _onClearSizeFilter: function (ev) {
+            if (ev) ev.preventDefault();
+            this.selected_sizes = [];
+            this.$('.js_check_size_filter').prop('checked', false);
+            this.$('.js_search_size_filter').val('');
+            this.$('.size-item-option').show();
+            this._applyMonitoringFilter();
             this.renderElement();
         },
 
@@ -217,21 +639,6 @@ odoo.define('dh_tms_intelligence_dashboard.Dashboard', function (require) {
             this._fetchDashboardData().then(function () {
                 self.renderElement();
             });
-        },
-
-        _onFilterWearState: function (ev) {
-            ev.preventDefault();
-            var state = $(ev.currentTarget).data('state');
-            this.active_filter_state = state;
-            this._applyLocalWearFilter();
-            this.renderElement();
-        },
-
-        _onClearWearFilter: function (ev) {
-            if (ev) ev.preventDefault();
-            this.active_filter_state = false;
-            this._applyLocalWearFilter();
-            this.renderElement();
         },
 
         _onRefreshDashboard: function (ev) {
@@ -279,9 +686,6 @@ odoo.define('dh_tms_intelligence_dashboard.Dashboard', function (require) {
             });
         },
 
-        // --- Interactive Drilldown Handlers ---
-
-        // KPI 1: Active Fleet Units Drilldown -> Vehicle List View
         _onDrilldownFleet: function (ev) {
             ev.preventDefault();
             var domain = [];
@@ -301,7 +705,6 @@ odoo.define('dh_tms_intelligence_dashboard.Dashboard', function (require) {
             });
         },
 
-        // KPI 2: Active Mounted Tires Drilldown -> Serial Numbers List View
         _onDrilldownMountedTires: function (ev) {
             ev.preventDefault();
             this.do_action({
@@ -314,7 +717,6 @@ odoo.define('dh_tms_intelligence_dashboard.Dashboard', function (require) {
             });
         },
 
-        // KPI 3: Wear & PSI Alerts Drilldown -> Tire Serial Numbers List View
         _onDrilldownWearAlerts: function (ev) {
             ev.preventDefault();
             this.do_action({
@@ -327,7 +729,6 @@ odoo.define('dh_tms_intelligence_dashboard.Dashboard', function (require) {
             });
         },
 
-        // KPI 4: Fleet CPKM Drilldown -> Tire Usage View
         _onDrilldownCPKM: function (ev) {
             ev.preventDefault();
             this.do_action({
@@ -336,29 +737,6 @@ odoo.define('dh_tms_intelligence_dashboard.Dashboard', function (require) {
                 res_model: 'dh.tire.usage',
                 views: [[false, 'list'], [false, 'form']],
                 domain: [],
-                target: 'current',
-            });
-        },
-
-        // Brand Table Row Drilldown -> Serial Numbers by Brand
-        _onDrilldownBrand: function (ev) {
-            ev.preventDefault();
-            var brandId = $(ev.currentTarget).data('brand-id');
-            var brandName = $(ev.currentTarget).data('brand-name');
-            var domain = [['is_tire', '=', true]];
-            
-            if (brandId) {
-                domain.push('|', ['product_id.product_brand_id', '=', brandId], ['product_id.brand_id', '=', brandId]);
-            } else if (brandName) {
-                domain.push(['product_id.name', 'ilike', brandName]);
-            }
-
-            this.do_action({
-                name: 'Tire Inventory - Brand: ' + (brandName || 'All'),
-                type: 'ir.actions.act_window',
-                res_model: 'stock.production.lot',
-                views: [[false, 'list'], [false, 'form']],
-                domain: domain,
                 target: 'current',
             });
         },
@@ -405,6 +783,89 @@ odoo.define('dh_tms_intelligence_dashboard.Dashboard', function (require) {
             });
         },
 
+        _renderCPKBillingCharts: function () {
+            var self = this;
+            var summary = (self.dashboard_data && self.dashboard_data.cpk_billing_summary) || {};
+            var hubData = summary.hub_chart_data || [];
+            var utilStatus = summary.utilization_status || { target_met: 0, near_target: 0, under_utilized: 0 };
+
+            // 1. Left Chart: Hub Base Revenue vs Deficit Recovery
+            var canvas1 = this.$('#js_cpk_hub_revenue_canvas')[0];
+            if (canvas1) {
+                var ctx1 = canvas1.getContext('2d');
+                var labels1 = hubData.map(function (h) { return h.name; });
+                var baseData = hubData.map(function (h) { return h.base_revenue; });
+                var deficitData = hubData.map(function (h) { return h.deficit_revenue; });
+
+                if (!labels1.length) {
+                    labels1 = ['No Active CPK Hubs'];
+                    baseData = [0];
+                    deficitData = [0];
+                }
+
+                if (window.Chart) {
+                    if (self.cpk_hub_chart) self.cpk_hub_chart.destroy();
+                    self.cpk_hub_chart = new window.Chart(ctx1, {
+                        type: 'bar',
+                        data: {
+                            labels: labels1,
+                            datasets: [
+                                {
+                                    label: 'Base Distance Revenue (Rp)',
+                                    data: baseData,
+                                    backgroundColor: '#1e62d0',
+                                },
+                                {
+                                    label: 'Min-KM Deficit Recovery (Rp)',
+                                    data: deficitData,
+                                    backgroundColor: '#fd7e14',
+                                }
+                            ]
+                        },
+                        options: {
+                            responsive: true,
+                            maintainAspectRatio: false,
+                            legend: { position: 'top' },
+                            scales: {
+                                xAxes: [{ stacked: false }],
+                                yAxes: [{ ticks: { beginAtZero: true } }]
+                            }
+                        }
+                    });
+                }
+            }
+
+            // 2. Right Chart: Vehicle Guarantee Utilization Status
+            var canvas2 = this.$('#js_cpk_utilization_canvas')[0];
+            if (canvas2) {
+                var ctx2 = canvas2.getContext('2d');
+                var utilData = [
+                    utilStatus.target_met || 0,
+                    utilStatus.near_target || 0,
+                    utilStatus.under_utilized || 0
+                ];
+
+                if (window.Chart) {
+                    if (self.cpk_util_chart) self.cpk_util_chart.destroy();
+                    self.cpk_util_chart = new window.Chart(ctx2, {
+                        type: 'doughnut',
+                        data: {
+                            labels: ['Target Met (≥ 2.5k KM)', 'Near Target (2k - 2.5k KM)', 'Under-Utilized (< 2k KM)'],
+                            datasets: [{
+                                data: utilData,
+                                backgroundColor: ['#28a745', '#ffc107', '#dc3545']
+                            }]
+                        },
+                        options: {
+                            responsive: true,
+                            maintainAspectRatio: false,
+                            legend: { position: 'bottom' }
+                        }
+                    });
+                }
+            }
+        },
+
         _onOpenBillingWizard: function (ev) {
             ev.preventDefault();
             var ctx = {};
@@ -426,3 +887,4 @@ odoo.define('dh_tms_intelligence_dashboard.Dashboard', function (require) {
 
     return TmsIntelligenceDashboard;
 });
+

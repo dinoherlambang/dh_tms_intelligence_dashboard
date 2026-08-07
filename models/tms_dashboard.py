@@ -248,6 +248,13 @@ class DhTmsDashboard(models.TransientModel):
         total_min_km_adjustment = 0.0
         min_km_deficit_vehicles = []
 
+        hub_chart_data = []
+        utilization_status = {
+            'target_met': 0,
+            'near_target': 0,
+            'under_utilized': 0,
+        }
+
         if 'operating.unit' in self.env:
             ou_domain = [('is_cpk_billing', '=', True)]
             if unit_id:
@@ -269,6 +276,9 @@ class DhTmsDashboard(models.TransientModel):
 
                 ou_vehicles = vehicles.filtered(lambda v: v.location_id.id == ou.id) if unit_id else Vehicle.search([('location_id', '=', ou.id)])
                 
+                ou_base_rev = 0.0
+                ou_deficit_rev = 0.0
+
                 for v in ou_vehicles:
                     tires_count = v.tire_count or v.expected_tire_count or (16 if v.is_trailer else 10)
                     
@@ -293,13 +303,23 @@ class DhTmsDashboard(models.TransientModel):
                         valid_kms = [u.km_used for u in usages if u.km_used > 0]
                         km_aktual = max(valid_kms) if valid_kms else 0.0
 
+                    base_val = km_aktual * tires_count * cpk_rate
+                    ou_base_rev += base_val
                     billed_km = max(km_aktual, min_threshold) if min_threshold > 0 else km_aktual
                     v_billing = billed_km * tires_count * cpk_rate
                     total_projected_billing += v_billing
 
+                    if km_aktual >= 2500.0:
+                        utilization_status['target_met'] += 1
+                    elif km_aktual >= 2000.0:
+                        utilization_status['near_target'] += 1
+                    else:
+                        utilization_status['under_utilized'] += 1
+
                     if min_threshold > 0 and km_aktual < min_threshold:
                         deficit_km = min_threshold - km_aktual
                         adjustment_val = deficit_km * tires_count * cpk_rate
+                        ou_deficit_rev += adjustment_val
                         total_min_km_adjustment += adjustment_val
 
                         min_km_deficit_vehicles.append({
@@ -316,194 +336,117 @@ class DhTmsDashboard(models.TransientModel):
                             'adjustment_str': f"Rp {round(adjustment_val, 0):,.0f}",
                         })
 
-        # 7. Advanced Dynamic Brand & Pattern Multi-Dimensional Performance Analytics
-        tire_lots = Lot.search([('is_tire', '=', True)])
-        brand_data = {}
-
-        # Search dh.tire records for pattern mapping
-        tire_records = self.env['dh.tire'].search([('serial_number', 'in', tire_lots.ids)])
-        tire_pattern_map = {t.serial_number.id: t.pattern or 'Standard' for t in tire_records if t.serial_number}
-
-        for lot in tire_lots:
-            b_name = '-'
-            brand_obj_id = False
-            if hasattr(lot, 'product_id') and lot.product_id:
-                if hasattr(lot.product_id, 'product_brand_id') and lot.product_id.product_brand_id:
-                    b_name = lot.product_id.product_brand_id.name
-                    brand_obj_id = lot.product_id.product_brand_id.id
-                elif hasattr(lot.product_id, 'brand_id') and lot.product_id.brand_id:
-                    b_name = lot.product_id.brand_id.name
-                    brand_obj_id = lot.product_id.brand_id.id
-                elif lot.product_id.name:
-                    b_name = lot.product_id.name
-
-            km = getattr(lot, 'total_mileage', 0.0) or getattr(lot, 'total_km', 0.0) or 0.0
-            initial_rtd = getattr(lot, 'rtd_initial', 0.0) or 15.0
-            current_rtd = getattr(lot, 'current_rtd', 0.0) or initial_rtd
-            rtd_used = max(0.0, initial_rtd - current_rtd)
-
-            t_type = getattr(lot, 'tire_type', 'original') or 'original'
-            pattern_name = tire_pattern_map.get(lot.id, 'Standard Pattern')
-
-            # Position / Axle category
-            pos_name = lot.current_position_id.name if lot.current_position_id else ''
-            pos_code = lot.current_position_id.code if lot.current_position_id else ''
-
-            is_steer = pos_code in ('1', '2', 'P1', 'P2') or 'steer' in pos_name.lower() or 'depan' in pos_name.lower()
-            is_trailer = 'trailer' in pos_name.lower() or (lot.current_vehicle_id and lot.current_vehicle_id.is_trailer)
-
-            if b_name not in brand_data:
-                brand_data[b_name] = {
-                    'count': 0,
-                    'original_count': 0,
-                    'retread_count': 0,
-                    'total_km': 0.0,
-                    'total_rtd_used': 0.0,
-                    'steer_km': 0.0,
-                    'steer_rtd': 0.0,
-                    'drive_km': 0.0,
-                    'drive_rtd': 0.0,
-                    'trailer_km': 0.0,
-                    'trailer_rtd': 0.0,
-                    'premature_scrap': 0,
-                    'brand_id': brand_obj_id,
-                    'patterns': {},
-                }
-
-            brand_data[b_name]['count'] += 1
-            if t_type == 'retread' or (hasattr(lot, 'retread_count') and lot.retread_count > 0):
-                brand_data[b_name]['retread_count'] += 1
-            else:
-                brand_data[b_name]['original_count'] += 1
-
-            brand_data[b_name]['total_km'] += km
-            brand_data[b_name]['total_rtd_used'] += rtd_used
-
-            if is_steer:
-                brand_data[b_name]['steer_km'] += km
-                brand_data[b_name]['steer_rtd'] += rtd_used
-            elif is_trailer:
-                brand_data[b_name]['trailer_km'] += km
-                brand_data[b_name]['trailer_rtd'] += rtd_used
-            else:
-                brand_data[b_name]['drive_km'] += km
-                brand_data[b_name]['drive_rtd'] += rtd_used
-
-            if getattr(lot, 'tire_state', '') == 'scrapped' and current_rtd > 5.0:
-                brand_data[b_name]['premature_scrap'] += 1
-
-            # Pattern level stats
-            if pattern_name not in brand_data[b_name]['patterns']:
-                brand_data[b_name]['patterns'][pattern_name] = {
-                    'count': 0,
-                    'km': 0.0,
-                    'rtd_used': 0.0,
-                }
-            brand_data[b_name]['patterns'][pattern_name]['count'] += 1
-            brand_data[b_name]['patterns'][pattern_name]['km'] += km
-            brand_data[b_name]['patterns'][pattern_name]['rtd_used'] += rtd_used
-
-        brand_performance = []
-        max_brand_wear_rate = 1.0
-        best_brand_leader = False
-
-        for b_name, b_info in brand_data.items():
-            count = b_info['count']
-            tot_km = b_info['total_km']
-            tot_rtd_used = b_info['total_rtd_used']
-            avg_km = round(tot_km / count, 1) if count > 0 else 0.0
-            km_per_mm = round(tot_km / tot_rtd_used, 1) if tot_rtd_used > 0 else 0.0
-
-            if km_per_mm > max_brand_wear_rate:
-                max_brand_wear_rate = km_per_mm
-                best_brand_leader = b_name
-
-            steer_rate = round(b_info['steer_km'] / b_info['steer_rtd'], 1) if b_info['steer_rtd'] > 0 else 0.0
-            drive_rate = round(b_info['drive_km'] / b_info['drive_rtd'], 1) if b_info['drive_rtd'] > 0 else 0.0
-            trailer_rate = round(b_info['trailer_km'] / b_info['trailer_rtd'], 1) if b_info['trailer_rtd'] > 0 else 0.0
-
-            total_rate_sum = max(1.0, steer_rate + drive_rate + trailer_rate)
-            steer_spark_pct = round((steer_rate / total_rate_sum) * 100, 1)
-            drive_spark_pct = round((drive_rate / total_rate_sum) * 100, 1)
-            trailer_spark_pct = round((trailer_rate / total_rate_sum) * 100, 1)
-
-            rates = [('Steer Axles', steer_rate), ('Drive Axles', drive_rate), ('Trailer Axles', trailer_rate)]
-            valid_rates = [r for r in rates if r[1] > 0]
-            best_axle = max(valid_rates, key=lambda x: x[1])[0] if valid_rates else 'All-Position'
-
-            retread_pct = round((b_info['retread_count'] / count) * 100, 1) if count > 0 else 0.0
-            failure_pct = round((b_info['premature_scrap'] / count) * 100, 1) if count > 0 else 0.0
-            healthy_scrap_pct = max(0.0, round(100.0 - failure_pct, 1))
-
-            target_km_pct = min(100.0, round((avg_km / 100000.0) * 100, 1))
-
-            patterns_list = []
-            for p_name, p_data in b_info['patterns'].items():
-                p_rtd = p_data['rtd_used']
-                p_km_mm = round(p_data['km'] / p_rtd, 1) if p_rtd > 0 else 0.0
-                patterns_list.append({
-                    'pattern': p_name,
-                    'count': p_data['count'],
-                    'avg_km': round(p_data['km'] / p_data['count'], 1) if p_data['count'] > 0 else 0.0,
-                    'km_per_mm': p_km_mm,
-                    'pattern_bar_pct': min(100.0, round((p_km_mm / 10000.0) * 100, 1)) if p_km_mm > 0 else 5.0,
+                hub_chart_data.append({
+                    'name': ou.name,
+                    'base_revenue': round(ou_base_rev, 2),
+                    'deficit_revenue': round(ou_deficit_rev, 2),
+                    'total_revenue': round(ou_base_rev + ou_deficit_rev, 2),
                 })
-            patterns_list.sort(key=lambda x: x['km_per_mm'], reverse=True)
 
-            brand_performance.append({
-                'brand': b_name,
-                'brand_id': b_info['brand_id'],
-                'count': count,
-                'original_count': b_info['original_count'],
-                'retread_count': b_info['retread_count'],
-                'avg_km': avg_km,
-                'km_per_mm': km_per_mm,
-                'steer_km_per_mm': steer_rate,
-                'drive_km_per_mm': drive_rate,
-                'trailer_km_per_mm': trailer_rate,
-                'steer_spark_pct': steer_spark_pct,
-                'drive_spark_pct': drive_spark_pct,
-                'trailer_spark_pct': trailer_spark_pct,
-                'best_axle': best_axle,
-                'retread_pct': retread_pct,
-                'failure_pct': failure_pct,
-                'healthy_scrap_pct': healthy_scrap_pct,
-                'target_km_pct': target_km_pct,
-                'patterns': patterns_list,
+        # 7. Tire Monitoring Report Telemetry Query
+        monitoring_domain = []
+        if unit_id:
+            monitoring_domain.append(('vehicle_id.location_id', '=', int(unit_id)))
+        if truck_type_id:
+            monitoring_domain.append(('vehicle_id.truck_type_id', '=', int(truck_type_id)))
+
+        monitoring_recs = self.env['dh.tire.monitoring'].search(monitoring_domain, order='monitor_date desc, id desc', limit=150)
+
+        monitoring_list = []
+        brands_set = set()
+        sizes_set = set()
+
+        for m in monitoring_recs:
+            brand_val = m.tire_brand or (m.lot_id.product_id.product_brand_id.name if m.lot_id and m.lot_id.product_id and hasattr(m.lot_id.product_id, 'product_brand_id') and m.lot_id.product_id.product_brand_id else 'Unbranded')
+            size_val = m.tire_size or (m.lot_id.product_id.name if m.lot_id and m.lot_id.product_id else 'Standard')
+
+            if brand_val:
+                brands_set.add(brand_val)
+            if size_val:
+                sizes_set.add(size_val)
+
+            monitoring_list.append({
+                'id': m.id,
+                'name': m.name or 'Monitoring',
+                'monitor_date': fields.Date.to_string(m.monitor_date) if m.monitor_date else '',
+                'serial_no': m.lot_id.name if m.lot_id else '-',
+                'tire_brand': brand_val,
+                'tire_type': m.tire_type or 'original',
+                'tire_size': size_val,
+                'vehicle_name': m.vehicle_id.nomor_lambung or m.vehicle_id.name if m.vehicle_id else '-',
+                'position_name': m.position_id.name if m.position_id else '-',
+                'km_traveled': m.km_traveled or 0.0,
+                'rtd_monitoring': m.rtd_monitoring or 0.0,
+                'install_rtd': m.install_rtd or 0.0,
+                'rtd_used': m.rtd_used or 0.0,
+                'wear_percentage': m.wear_percentage or 0.0,
+                'psi_monitoring': m.psi_monitoring or 0.0,
+                'km_per_mm': m.km_per_mm or 0.0,
+                'est_cpk': m.est_cpk or 0.0,
+                'notes': m.monitor_notes or '',
             })
 
-        for b in brand_performance:
-            b['bar_pct'] = round((b['km_per_mm'] / max_brand_wear_rate * 100), 1) if max_brand_wear_rate > 0 else 0.0
-            if b['brand'] == best_brand_leader and b['km_per_mm'] > 0:
-                b['badge_text'] = '🏆 TOP WEAR INDEX'
-                b['badge_class'] = 'badge-success'
-            elif b['km_per_mm'] > 5000.0:
-                b['badge_text'] = 'HIGH DURABILITY'
-                b['badge_class'] = 'badge-info'
-            else:
-                b['badge_text'] = 'STANDARD WEAR'
-                b['badge_class'] = 'badge-secondary'
+        vehicles_dict = {}
+        for m in monitoring_recs:
+            if m.vehicle_id:
+                v_name = m.vehicle_id.nomor_lambung or m.vehicle_id.name
+                if v_name and v_name not in vehicles_dict:
+                    vehicles_dict[v_name] = {
+                        'id': m.vehicle_id.id,
+                        'name': v_name,
+                    }
 
-        brand_performance.sort(key=lambda x: x['km_per_mm'], reverse=True)
+        for v in vehicles:
+            v_name = v.nomor_lambung or v.name
+            if v_name and v_name not in vehicles_dict:
+                vehicles_dict[v_name] = {
+                    'id': v.id,
+                    'name': v_name,
+                }
 
-        total_fleet_km = sum(b_info['total_km'] for b_info in brand_data.values())
-        total_fleet_rtd = sum(b_info['total_rtd_used'] for b_info in brand_data.values())
+        monitoring_vehicles = sorted(list(vehicles_dict.values()), key=lambda x: x['name'])
+
+        years_set = set()
+        for m in monitoring_recs:
+            if m.monitor_date:
+                years_set.add(str(m.monitor_date.year))
+
+        if not years_set:
+            years_set.add(str(fields.Date.today().year))
+
+        monitoring_years = sorted(list(years_set), reverse=True)
+
+        monitoring_brands = sorted([{'name': b} for b in brands_set], key=lambda x: x['name'])
+        monitoring_sizes = sorted([{'name': s} for s in sizes_set], key=lambda x: x['name'])
+
+        total_fleet_km = sum(m['km_traveled'] for m in monitoring_list)
+        total_fleet_rtd = sum(m['rtd_used'] for m in monitoring_list)
 
         if total_fleet_km > 0 and total_fleet_rtd > 0:
             avg_fleet_cpkm = f"{round(total_fleet_km / total_fleet_rtd, 1):,.1f} km/mm"
         else:
             avg_fleet_cpkm = "-"
 
-        # 8. Donut Geometry Calculations
-        total_tires_tracked = total_mounted_tires if total_mounted_tires > 0 else 0
-        normal_pct = round(normal_tires_count / total_tires_tracked * 100, 1) if total_tires_tracked > 0 else 0.0
-        warning_pct = round(warning_tires_count / total_tires_tracked * 100, 1) if total_tires_tracked > 0 else 0.0
-        critical_pct = round(critical_tires_count / total_tires_tracked * 100, 1) if total_tires_tracked > 0 else 0.0
+        # Compute tire movement counts (Installed, Rotated, Removed)
+        installed_tires = 0
+        rotated_tires = 0
+        removed_tires = 0
 
-        circ = 251.32
-        normal_dash = round((normal_pct / 100.0) * circ, 2)
-        warning_dash = round((warning_pct / 100.0) * circ, 2)
-        critical_dash = round((critical_pct / 100.0) * circ, 2)
+        if 'dh.tire.usage' in self.env:
+            usage_domain = []
+            if unit_id:
+                usage_domain.append(('vehicle_id.location_id', '=', int(unit_id)))
+            usage_recs = self.env['dh.tire.usage'].search(usage_domain)
+            installed_tires = len(usage_recs.filtered(lambda u: u.usage_type == 'mount' or u.install_date))
+            rotated_tires = len(usage_recs.filtered(lambda u: getattr(u, 'is_rotation', False) or getattr(u, 'action_type', '') == 'rotation'))
+            removed_tires = len(usage_recs.filtered(lambda u: u.removal_date or u.usage_type in ('scrap', 'retread') or u.removal_reason))
+
+        if installed_tires == 0 and rotated_tires == 0 and removed_tires == 0 and 'dh.tire' in self.env:
+            tire_domain = []
+            tires = self.env['dh.tire'].search(tire_domain)
+            installed_tires = len(tires.filtered(lambda t: t.state == 'mounted'))
+            rotated_tires = sum(t.rotation_count for t in tires)
+            removed_tires = len(tires.filtered(lambda t: t.state in ('unmounted', 'retread', 'scrapped')))
 
         return {
             'filters': {
@@ -522,15 +465,10 @@ class DhTmsDashboard(models.TransientModel):
                 'warning_tires': warning_tires_count,
                 'normal_tires': normal_tires_count,
                 'avg_cpkm': avg_fleet_cpkm,
-            },
-            'wear_distribution': {
-                'normal_pct': normal_pct,
-                'warning_pct': warning_pct,
-                'critical_pct': critical_pct,
-                'normal_dash': normal_dash,
-                'warning_dash': warning_dash,
-                'critical_dash': critical_dash,
-                'circumference': circ,
+                'installed_tires': installed_tires,
+                'rotated_tires': rotated_tires,
+                'removed_tires': removed_tires,
+                'total_inspections': len(monitoring_list),
             },
             'psi_distribution': {
                 'normal_count': normal_psi_count,
@@ -556,13 +494,21 @@ class DhTmsDashboard(models.TransientModel):
                 'adjustment_str': f"Rp {round(total_min_km_adjustment, 0):,.0f}" if total_min_km_adjustment > 0 else "Rp 0",
                 'deficit_vehicle_count': len(min_km_deficit_vehicles),
                 'periode_str': f"{date_from.strftime('%d %b')} - {date_to.strftime('%d %b %Y')}",
+                'hub_chart_data': hub_chart_data,
+                'utilization_status': utilization_status,
             },
             'min_km_deficit_vehicles': min_km_deficit_vehicles,
             'recent_trailer_exchanges': recent_trailer_exchanges,
-            'vehicle_grid': vehicle_grid,
             'alert_queue': alert_queue[:10],
-            'brand_performance': brand_performance,
-            'best_brand_leader': best_brand_leader or '-',
             'rotation_recommendations': rotation_recommendations[:5],
             'replacement_forecast': replacement_forecast[:5],
+            'monitoring_report': {
+                'records': monitoring_list,
+                'vehicles': monitoring_vehicles,
+                'brands': monitoring_brands,
+                'sizes': monitoring_sizes,
+                'years': monitoring_years,
+                'total_count': len(monitoring_list),
+            }
         }
+

@@ -65,32 +65,36 @@
                         </tbody>
                     </table>
 
-                    <!-- Vehicle Fleet Status Table -->
-                    <h4 style="color: #2c3e50; font-size: 12px; margin-bottom: 6px; font-weight: bold;">Vehicle Fleet Status Overview</h4>
+                    <!-- Tire Monitoring Report Table -->
+                    <h4 style="color: #2c3e50; font-size: 12px; margin-bottom: 6px; font-weight: bold;">Tire Monitoring Telemetry Report</h4>
                     <table style="width: 100%; border-collapse: collapse; margin-bottom: 15px;" class="table table-sm table-bordered">
                         <thead style="background-color: #2c3e50; color: #ffffff;">
                             <tr>
-                                <th>Plate (Nopol)</th>
-                                <th>No. Lambung</th>
-                                <th>Truck Configuration</th>
-                                <th class="text-center">Axles</th>
-                                <th class="text-center">Mounted Ratio</th>
-                                <th class="text-center">Health Status</th>
+                                <th>Date</th>
+                                <th>Serial No</th>
+                                <th>Brand</th>
+                                <th>Size</th>
+                                <th>Vehicle</th>
+                                <th>Position</th>
+                                <th class="text-right">Distance (km)</th>
+                                <th class="text-right">Current RTD</th>
+                                <th class="text-right">Wear %</th>
+                                <th class="text-right">PSI</th>
                             </tr>
                         </thead>
                         <tbody>
-                            <t t-foreach="data.get('vehicle_grid', [])" t-as="v">
+                            <t t-foreach="data.get('monitoring_report', {}).get('records', [])" t-as="m">
                                 <tr>
-                                    <td><strong><t t-esc="v.get('nopol')"/></strong></td>
-                                    <td><t t-esc="v.get('nomor_lambung')"/></td>
-                                    <td><t t-esc="v.get('truck_type')"/></td>
-                                    <td class="text-center"><t t-esc="v.get('axle_count')"/></td>
-                                    <td class="text-center"><t t-esc="v.get('mounted_count')"/>/<t t-esc="v.get('expected_count')"/></td>
-                                    <td class="text-center">
-                                        <span t-attf-class="badge #{v.get('health_state') == 'critical' and 'badge-danger' or (v.get('health_state') == 'warning' and 'badge-warning' or 'badge-success')}">
-                                            <t t-esc="v.get('health_state').upper()"/>
-                                        </span>
-                                    </td>
+                                    <td><t t-esc="m.get('monitor_date')"/></td>
+                                    <td><strong><t t-esc="m.get('serial_no')"/></strong></td>
+                                    <td><t t-esc="m.get('tire_brand')"/></td>
+                                    <td><t t-esc="m.get('tire_size')"/></td>
+                                    <td><t t-esc="m.get('vehicle_name')"/></td>
+                                    <td><t t-esc="m.get('position_name')"/></td>
+                                    <td class="text-right"><t t-esc="m.get('km_traveled')"/> km</td>
+                                    <td class="text-right"><strong><t t-esc="m.get('rtd_monitoring')"/> mm</strong></td>
+                                    <td class="text-right"><t t-esc="m.get('wear_percentage')"/>%</td>
+                                    <td class="text-right"><t t-esc="m.get('psi_monitoring')"/> PSI</td>
                                 </tr>
                             </t>
                         </tbody>

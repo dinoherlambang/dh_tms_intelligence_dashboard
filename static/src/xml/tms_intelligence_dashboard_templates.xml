@@ -43,204 +43,408 @@
                 </div>
             </div>
 
-            <!-- 4 Interactive Executive KPI Cards (Drilldown Enabled) -->
-            <div class="kpi-cards-grid">
-                <div class="kpi-card kpi-active-vehicles js_drilldown_fleet" style="cursor: pointer;" title="Click to drill down to Vehicle list">
-                    <div class="kpi-icon"><i class="fa fa-truck"/></div>
-                    <div class="kpi-details">
-                        <span class="kpi-title">Active Fleet Units</span>
-                        <span class="kpi-value"><t t-esc="widget.kpis.active_vehicles"/> / <t t-esc="widget.kpis.total_vehicles"/></span>
-                        <span class="kpi-subtitle"><t t-esc="widget.kpis.operational_pct"/>% Operational Readiness &gt;</span>
+            <!-- Monitoring Executive KPI Cards Grid -->
+            <div class="row mb-3">
+                <!-- Card 1: Monitoring Inspections Activity -->
+                <div class="col-xl-3 col-md-6 col-12 mb-3 mb-xl-0">
+                    <div class="kpi-card kpi-mounted-tires js_open_monitoring_list" style="cursor: pointer; height: 100%;" title="Click to view all Inspection Logs">
+                        <div class="kpi-icon" style="background: #e6f7ff; color: #007bff;"><i class="fa fa-clipboard"/></div>
+                        <div class="kpi-details">
+                            <span class="kpi-title">Monitoring Records</span>
+                            <span class="kpi-value"><t t-esc="widget.kpis.total_inspections or 0"/> Logs</span>
+                            <span class="kpi-subtitle"><t t-esc="widget.kpis.active_vehicles or 0"/> Fleet Units Inspected &gt;</span>
+                        </div>
                     </div>
                 </div>
 
-                <div class="kpi-card kpi-mounted-tires js_drilldown_mounted_tires" style="cursor: pointer;" title="Click to drill down to Mounted Tires">
-                    <div class="kpi-icon"><i class="fa fa-circle-o-notch"/></div>
-                    <div class="kpi-details">
-                        <span class="kpi-title">Active Mounted Tires</span>
-                        <span class="kpi-value"><t t-esc="widget.kpis.total_mounted_tires"/> / <t t-esc="widget.kpis.total_expected_tires"/></span>
-                        <span class="kpi-subtitle">Position Ratio Tracked &gt;</span>
+                <!-- Card 2: Combined Box for Installed, Rotated, and Removed Tires -->
+                <div class="col-xl-4 col-md-6 col-12 mb-3 mb-xl-0">
+                    <div class="chart-box p-3 h-100" style="background: #ffffff; border: 1px solid #e9ecef; border-left: 4px solid #1e62d0; border-radius: 8px; box-shadow: 0 2px 6px rgba(0,0,0,0.04);">
+                        <div class="d-flex justify-content-between align-items-center mb-1">
+                            <strong style="font-size: 11px; font-weight: 700; color: #1e62d0; text-transform: uppercase;">
+                                <i class="fa fa-sync-alt mr-1"/> Tire Lifecycle Movements
+                            </strong>
+                            <span class="badge badge-light text-muted" style="font-size: 10px;">Operational Status</span>
+                        </div>
+                        <div class="row text-center align-items-center mt-2">
+                            <div class="col-4 border-right pr-1 pl-1">
+                                <div class="text-success font-weight-bold" style="font-size: 17px;">
+                                    <i class="fa fa-plus-circle mr-1" style="font-size: 13px;"/>
+                                    <t t-esc="widget.kpis.installed_tires or 0"/>
+                                </div>
+                                <div class="text-muted" style="font-size: 10px; font-weight: 600;">Installed</div>
+                            </div>
+                            <div class="col-4 border-right pr-1 pl-1">
+                                <div class="text-info font-weight-bold" style="font-size: 17px;">
+                                    <i class="fa fa-refresh mr-1" style="font-size: 13px;"/>
+                                    <t t-esc="widget.kpis.rotated_tires or 0"/>
+                                </div>
+                                <div class="text-muted" style="font-size: 10px; font-weight: 600;">Rotated</div>
+                            </div>
+                            <div class="col-4 pr-1 pl-1">
+                                <div class="text-danger font-weight-bold" style="font-size: 17px;">
+                                    <i class="fa fa-minus-circle mr-1" style="font-size: 13px;"/>
+                                    <t t-esc="widget.kpis.removed_tires or 0"/>
+                                </div>
+                                <div class="text-muted" style="font-size: 10px; font-weight: 600;">Removed</div>
+                            </div>
+                        </div>
                     </div>
                 </div>
 
-                <div class="kpi-card kpi-wear-alerts js_drilldown_wear_alerts" style="cursor: pointer;" title="Click to drill down to Wear Alerts list">
-                    <div class="kpi-icon"><i class="fa fa-exclamation-triangle"/></div>
-                    <div class="kpi-details">
-                        <span class="kpi-title">Wear &amp; PSI Alerts</span>
-                        <span class="kpi-value text-danger"><t t-esc="widget.kpis.critical_tires"/> Critical</span>
-                        <span class="kpi-subtitle"><t t-esc="widget.kpis.warning_tires"/> Warnings Needing Action &gt;</span>
+                <!-- Card 3: Safety & PSI Alerts -->
+                <div class="col-xl-3 col-md-6 col-12 mb-3 mb-xl-0">
+                    <div class="kpi-card kpi-wear-alerts js_drilldown_wear_alerts" style="cursor: pointer; height: 100%;" title="Click to view Wear Alerts">
+                        <div class="kpi-icon"><i class="fa fa-exclamation-triangle"/></div>
+                        <div class="kpi-details">
+                            <span class="kpi-title">Safety &amp; PSI Alerts</span>
+                            <span class="kpi-value text-danger"><t t-esc="widget.kpis.critical_tires"/> Critical</span>
+                            <span class="kpi-subtitle"><t t-esc="widget.kpis.warning_tires"/> Warnings Needing Action &gt;</span>
+                        </div>
                     </div>
                 </div>
 
-                <div class="kpi-card kpi-cpkm js_drilldown_cpkm" style="cursor: pointer;" title="Click to drill down to CPKM Tire Usage">
-                    <div class="kpi-icon"><i class="fa fa-line-chart"/></div>
-                    <div class="kpi-details">
-                        <span class="kpi-title">Avg Fleet CPKM</span>
-                        <span class="kpi-value"><t t-esc="widget.kpis.avg_cpkm"/></span>
-                        <span class="kpi-subtitle">Tire Lifecycle Efficiency &gt;</span>
+                <!-- Card 4: Fleet Wear Efficiency -->
+                <div class="col-xl-2 col-md-6 col-12 mb-3 mb-xl-0">
+                    <div class="kpi-card kpi-cpkm js_drilldown_cpkm" style="cursor: pointer; height: 100%;" title="Click to view Wear Efficiency">
+                        <div class="kpi-icon"><i class="fa fa-tachometer"/></div>
+                        <div class="kpi-details">
+                            <span class="kpi-title">Wear Efficiency</span>
+                            <span class="kpi-value"><t t-esc="widget.kpis.avg_cpkm"/></span>
+                            <span class="kpi-subtitle">KM / mm Rate &gt;</span>
+                        </div>
                     </div>
                 </div>
             </div>
 
-            <!-- Main Content Grid -->
-            <div class="dashboard-main-grid">
-                <!-- Left Column: Vehicle Health Quick Grid -->
-                <div class="dashboard-panel">
-                    <div class="panel-header">
-                        <h3>
-                            <i class="fa fa-th-large mr-2"/>Vehicle Fleet Telemetry Quick-Grid
-                            <t t-if="widget.active_filter_state">
-                                <span class="badge badge-warning ml-2">Filtered: <t t-esc="widget.active_filter_state.toUpperCase()"/></span>
-                                <button class="btn btn-link btn-sm js_clear_wear_filter">(Clear Filter)</button>
-                            </t>
-                        </h3>
-                        <span class="badge badge-info"><t t-esc="widget.filtered_vehicle_grid.length"/> Vehicles</span>
-                    </div>
-
-                    <div class="vehicle-cards-container">
-                        <t t-if="widget.filtered_vehicle_grid &amp;&amp; widget.filtered_vehicle_grid.length">
-                            <t t-foreach="widget.filtered_vehicle_grid" t-as="v">
-                                <div class="vehicle-quick-card js_open_chassis_diagram" t-att-data-vehicle-id="v.id">
-                                    <div class="v-card-top">
-                                        <span class="v-card-nopol"><t t-esc="v.nopol"/></span>
-                                        <span t-attf-class="health-badge #{v.health_state}">
-                                            <t t-esc="v.health_state.toUpperCase()"/>
-                                        </span>
-                                    </div>
-                                    <div class="v-card-type"><t t-esc="v.truck_type"/> | Lambung: <t t-esc="v.nomor_lambung"/></div>
-                                    <div class="v-card-bottom">
-                                        <span>Mounted Ratio: <strong><t t-esc="v.mounted_count"/>/<t t-esc="v.expected_count"/></strong></span>
-                                        <span class="text-primary font-weight-bold">View Chassis Diagram &gt;</span>
-                                    </div>
-                                </div>
-                            </t>
+            <!-- Tire Monitoring Report Panel -->
+            <div class="dashboard-panel mb-4">
+                <!-- Header with Title & Action Controls -->
+                <div class="panel-header" style="flex-wrap: wrap; gap: 10px;">
+                    <h3>
+                        <i class="fa fa-line-chart mr-2"/>Tire Monitoring Report
+                        <t t-if="widget.monitoring_report &amp;&amp; widget.monitoring_report.records">
+                            <span class="badge badge-info ml-2"><t t-esc="widget.filtered_monitoring_records.length"/> Inspection Records</span>
                         </t>
-                        <t t-else="">
-                            <div class="p-3 text-center text-muted">No vehicles matching active filter criteria.</div>
-                        </t>
+                    </h3>
+                    <div style="display: flex; align-items: center; gap: 8px; flex-wrap: wrap;">
+                        <button class="btn btn-outline-primary btn-sm js_open_monitoring_wizard">
+                            <i class="fa fa-file-excel-o mr-1"/> Export Excel Report Wizard
+                        </button>
+                        <button class="btn btn-outline-info btn-sm js_open_monitoring_list">
+                            <i class="fa fa-list mr-1"/> View All Inspections
+                        </button>
+                        <button class="btn btn-primary btn-sm js_create_monitoring_rec">
+                            <i class="fa fa-plus mr-1"/> + New Monitoring
+                        </button>
                     </div>
                 </div>
 
-                <!-- Right Column: Interactive Wear Donut Chart & Predictive Widgets -->
-                <div class="dashboard-panel">
-                    <!-- Interactive Wear Heatmap Filter -->
-                    <div class="panel-header">
-                        <h3><i class="fa fa-pie-chart mr-2"/>Fleet Tire Wear Distribution Heatmap</h3>
-                        <small class="text-muted">(Click segment to filter quick-grid)</small>
+                <!-- 2-Column Telemetry Graph & Interactive Filter Section -->
+                <div class="row mb-3">
+                    <!-- Column 1: Multi-Tab Graph Chart Line & Marker -->
+                    <div class="col-md-8 col-12 mb-3 mb-md-0">
+                        <div class="chart-box p-3" style="background: #ffffff; border: 1px solid #e9ecef; border-radius: 8px; position: relative;">
+                            <div class="d-flex justify-content-between align-items-center mb-2 border-bottom pb-2">
+                                <ul class="nav nav-pills js_chart_tabs flex-wrap" role="tablist" style="gap: 4px;">
+                                    <li class="nav-item">
+                                        <a t-attf-class="nav-link #{widget.active_chart_tab == 'rtd' ? 'active' : ''} py-1 px-2 js_select_chart_tab" data-tab="rtd" href="#" style="font-weight: 700; font-size: 11px; cursor: pointer;">
+                                            📉 RTD (mm)
+                                        </a>
+                                    </li>
+                                    <li class="nav-item">
+                                        <a t-attf-class="nav-link #{widget.active_chart_tab == 'mileage' ? 'active' : ''} py-1 px-2 js_select_chart_tab" data-tab="mileage" href="#" style="font-weight: 700; font-size: 11px; cursor: pointer;">
+                                            🛣️ Mileage (KM)
+                                        </a>
+                                    </li>
+                                    <li class="nav-item">
+                                        <a t-attf-class="nav-link #{widget.active_chart_tab == 'wear_pct' ? 'active' : ''} py-1 px-2 js_select_chart_tab" data-tab="wear_pct" href="#" style="font-weight: 700; font-size: 11px; cursor: pointer;">
+                                            ⚠️ Wear (%)
+                                        </a>
+                                    </li>
+                                    <li class="nav-item">
+                                        <a t-attf-class="nav-link #{widget.active_chart_tab == 'efficiency' ? 'active' : ''} py-1 px-2 js_select_chart_tab" data-tab="efficiency" href="#" style="font-weight: 700; font-size: 11px; cursor: pointer;">
+                                            ⚡ KM / mm
+                                        </a>
+                                    </li>
+                                    <li class="nav-item">
+                                        <a t-attf-class="nav-link #{widget.active_chart_tab == 'psi' ? 'active' : ''} py-1 px-2 js_select_chart_tab" data-tab="psi" href="#" style="font-weight: 700; font-size: 11px; cursor: pointer;">
+                                            🎈 Pressure (PSI)
+                                        </a>
+                                    </li>
+                                    <li class="nav-item">
+                                        <a t-attf-class="nav-link #{widget.active_chart_tab == 'cpk' ? 'active' : ''} py-1 px-2 js_select_chart_tab" data-tab="cpk" href="#" style="font-weight: 700; font-size: 11px; cursor: pointer;">
+                                            💰 Est. CPK
+                                        </a>
+                                    </li>
+                                </ul>
+                                <small class="text-muted d-none d-lg-inline">Plot by Date</small>
+                            </div>
+                            <div class="chart-canvas-wrapper" style="position: relative; width: 100%; height: 250px;">
+                                <canvas id="js_tire_monitoring_canvas" style="width: 100%; height: 100%;"></canvas>
+                            </div>
+                            <div class="chart-title-header mt-2 pt-1 border-top d-flex justify-content-between align-items-center">
+                                <h5 class="m-0" style="font-size: 12px; font-weight: 700; color: #1e62d0;">
+                                    <t t-if="widget.active_chart_tab == 'mileage'">
+                                        🛣️ Cumulative KM Mileage Telemetry Trend Chart
+                                    </t>
+                                    <t t-elif="widget.active_chart_tab == 'wear_pct'">
+                                        ⚠️ Tire Wear Percentage (%) Degradation Trend Chart
+                                    </t>
+                                    <t t-elif="widget.active_chart_tab == 'efficiency'">
+                                        ⚡ Kilometers Per Millimeter (KM / mm) Wear Efficiency Trend Chart
+                                    </t>
+                                    <t t-elif="widget.active_chart_tab == 'psi'">
+                                        🎈 Tire Inflation Pressure (PSI) Telemetry Trend Chart
+                                    </t>
+                                    <t t-elif="widget.active_chart_tab == 'cpk'">
+                                        💰 Estimated Cost Per Kilometer (Est. CPK Rp/KM) Trend Chart
+                                    </t>
+                                    <t t-else="">
+                                        📉 Remaining Tread Depth (RTD mm) Telemetry Trend Chart
+                                    </t>
+                                </h5>
+                                <span class="badge badge-light text-muted" style="font-size: 10px;">Line &amp; Marker Analytics</span>
+                            </div>
+                            <div class="chart-description-banner mt-1 p-2" style="background: #f0f4fc; border-left: 4px solid #1e62d0; border-radius: 4px; font-size: 11px; color: #2c3e50;">
+                                <i class="fa fa-info-circle text-primary mr-1"/>
+                                <span class="js_chart_description_text">
+                                    <t t-if="widget.active_chart_tab == 'mileage'">
+                                        <strong>KM Mileage:</strong> Plots cumulative distance traveled (KM) recorded during fleet inspections. Used to analyze tire mileage accumulation across vehicles and brands over time.
+                                    </t>
+                                    <t t-elif="widget.active_chart_tab == 'wear_pct'">
+                                        <strong>Tire Wear Percentage (%):</strong> Displays tire tread consumption percentage. Yellow line (50%) signals mid-life rotation review; Red line (80%) highlights critical wear requiring immediate retread or replacement planning.
+                                    </t>
+                                    <t t-elif="widget.active_chart_tab == 'efficiency'">
+                                        <strong>KM / mm Wear Efficiency:</strong> Measures distance traveled per 1.0 mm of tread wear (KM / mm). Higher values indicate superior tire durability, proper wheel alignment, and optimal driving efficiency.
+                                    </t>
+                                    <t t-elif="widget.active_chart_tab == 'psi'">
+                                        <strong>Inflation Pressure (PSI):</strong> Monitors cold inflation pressure in PSI. Green dashed line marks standard target pressure (110 PSI); Red line marks dangerous under-inflation hazard limit (90 PSI).
+                                    </t>
+                                    <t t-elif="widget.active_chart_tab == 'cpk'">
+                                        <strong>Est. Cost per KM (Rp):</strong> Tracks calculated cost per kilometer (Rp/KM) based on initial tire purchase cost divided by projected total mileage. Helps optimize procurement and brand selection.
+                                    </t>
+                                    <t t-else="">
+                                        <strong>Remaining Tread Depth (mm):</strong> Tracks physical tread depth (mm) over time. Red dashed line indicates the 3.0 mm minimum safety threshold; Green line marks 18.0 mm new tire baseline.
+                                    </t>
+                                </span>
+                            </div>
+                        </div>
                     </div>
 
-                    <!-- Donut Ring Chart -->
-                    <div class="donut-chart-container mb-3" style="display: flex; align-items: center; justify-content: space-around; padding: 10px 0;">
-                        <div style="position: relative; width: 130px; height: 130px;">
-                            <svg width="130" height="130" viewBox="0 0 100 100" style="transform: rotate(-90deg);">
-                                <circle cx="50" cy="50" r="40" fill="transparent" stroke="#e9ecef" stroke-width="12"/>
-                                <circle cx="50" cy="50" r="40" fill="transparent" stroke="#28a745" stroke-width="12" class="js_filter_wear_state" data-state="normal" style="cursor: pointer;"
-                                        t-att-stroke-dasharray="widget.wear_distribution.normal_dash + ' ' + widget.wear_distribution.circumference"
-                                        stroke-dashoffset="0"/>
-                                <circle cx="50" cy="50" r="40" fill="transparent" stroke="#ffc107" stroke-width="12" class="js_filter_wear_state" data-state="warning" style="cursor: pointer;"
-                                        t-att-stroke-dasharray="widget.wear_distribution.warning_dash + ' ' + widget.wear_distribution.circumference"
-                                        t-att-stroke-dashoffset="'-' + widget.wear_distribution.normal_dash"/>
-                                <circle cx="50" cy="50" r="40" fill="transparent" stroke="#dc3545" stroke-width="12" class="js_filter_wear_state" data-state="critical" style="cursor: pointer;"
-                                        t-att-stroke-dasharray="widget.wear_distribution.critical_dash + ' ' + widget.wear_distribution.circumference"
-                                        t-att-stroke-dashoffset="'-' + (widget.wear_distribution.normal_dash + widget.wear_distribution.warning_dash)"/>
-                            </svg>
-                            <div style="position: absolute; top: 0; left: 0; width: 130px; height: 130px; display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center;">
-                                <span style="font-size: 18px; font-weight: 800; color: #2c3e50;"><t t-esc="widget.kpis.total_mounted_tires"/></span>
-                                <span style="font-size: 9px; font-weight: 600; color: #6c757d; text-transform: uppercase;">Mounted</span>
+                    <!-- Column 2: Interactive Searchable Filters & Period Options -->
+                    <div class="col-md-4 col-12">
+                        <!-- Period Selector (Years & Quarter/Months) -->
+                        <div class="filter-box mb-2" style="background: #f8f9fa; border: 1px solid #e9ecef; border-radius: 8px; padding: 8px 10px;">
+                            <div class="d-flex justify-content-between align-items-center mb-2">
+                                <strong style="font-size: 11px; font-weight: 700; color: #1e62d0; text-transform: uppercase;">
+                                    <i class="fa fa-calendar mr-1"/> Monitoring Period
+                                </strong>
+                                <button class="btn btn-link btn-xs js_clear_period_filter p-0" style="font-size: 11px;">Reset</button>
+                            </div>
+                            <div class="form-row">
+                                <div class="col-6">
+                                    <select class="form-control form-control-sm js_filter_monitoring_year">
+                                        <option value="">-- All Years --</option>
+                                        <t t-if="widget.monitoring_report &amp;&amp; widget.monitoring_report.years">
+                                            <t t-foreach="widget.monitoring_report.years" t-as="y">
+                                                <option t-att-value="y" t-att-selected="widget.selected_year == y ? 'selected' : None">
+                                                    <t t-esc="y"/>
+                                                </option>
+                                            </t>
+                                        </t>
+                                    </select>
+                                </div>
+                                <div class="col-6">
+                                    <select class="form-control form-control-sm js_filter_monitoring_period">
+                                        <option value="">-- All Period --</option>
+                                        <optgroup label="Quarters">
+                                            <option value="Q1" t-att-selected="widget.selected_period == 'Q1' ? 'selected' : None">Q1 (Jan - Mar)</option>
+                                            <option value="Q2" t-att-selected="widget.selected_period == 'Q2' ? 'selected' : None">Q2 (Apr - Jun)</option>
+                                            <option value="Q3" t-att-selected="widget.selected_period == 'Q3' ? 'selected' : None">Q3 (Jul - Sep)</option>
+                                            <option value="Q4" t-att-selected="widget.selected_period == 'Q4' ? 'selected' : None">Q4 (Oct - Dec)</option>
+                                        </optgroup>
+                                        <optgroup label="Months">
+                                            <option value="1" t-att-selected="widget.selected_period == '1' ? 'selected' : None">January</option>
+                                            <option value="2" t-att-selected="widget.selected_period == '2' ? 'selected' : None">February</option>
+                                            <option value="3" t-att-selected="widget.selected_period == '3' ? 'selected' : None">March</option>
+                                            <option value="4" t-att-selected="widget.selected_period == '4' ? 'selected' : None">April</option>
+                                            <option value="5" t-att-selected="widget.selected_period == '5' ? 'selected' : None">May</option>
+                                            <option value="6" t-att-selected="widget.selected_period == '6' ? 'selected' : None">June</option>
+                                            <option value="7" t-att-selected="widget.selected_period == '7' ? 'selected' : None">July</option>
+                                            <option value="8" t-att-selected="widget.selected_period == '8' ? 'selected' : None">August</option>
+                                            <option value="9" t-att-selected="widget.selected_period == '9' ? 'selected' : None">September</option>
+                                            <option value="10" t-att-selected="widget.selected_period == '10' ? 'selected' : None">October</option>
+                                            <option value="11" t-att-selected="widget.selected_period == '11' ? 'selected' : None">November</option>
+                                            <option value="12" t-att-selected="widget.selected_period == '12' ? 'selected' : None">December</option>
+                                        </optgroup>
+                                    </select>
+                                </div>
                             </div>
                         </div>
 
-                        <!-- Donut Legend (Clickable Filters) -->
-                        <div style="display: flex; flex-direction: column; gap: 8px; font-size: 12px;">
-                            <div class="js_filter_wear_state" data-state="normal" style="cursor: pointer;" title="Click to filter Normal tires">
-                                <span style="display: inline-block; width: 12px; height: 12px; border-radius: 3px; background-color: #28a745; margin-right: 6px;"/>
-                                <span>🟢 Normal (&gt;6.0mm): <strong><t t-esc="widget.kpis.normal_tires"/></strong> (<t t-esc="widget.wear_distribution.normal_pct"/>%)</span>
+                        <!-- Row 1: Vehicle Checkbox List with Search Box (Operating Unit Related) -->
+                        <div class="filter-box mb-2" style="background: #f8f9fa; border: 1px solid #e9ecef; border-radius: 8px; padding: 8px 10px;">
+                            <div class="d-flex justify-content-between align-items-center mb-1">
+                                <strong style="font-size: 11px; font-weight: 700; color: #1e62d0; text-transform: uppercase;">
+                                    <i class="fa fa-truck mr-1"/> Fleet Vehicles
+                                </strong>
+                                <button class="btn btn-link btn-xs js_clear_vehicle_filter p-0" style="font-size: 10px;">Reset</button>
                             </div>
-                            <div class="js_filter_wear_state" data-state="warning" style="cursor: pointer;" title="Click to filter Warning tires">
-                                <span style="display: inline-block; width: 12px; height: 12px; border-radius: 3px; background-color: #ffc107; margin-right: 6px;"/>
-                                <span>🟡 Warning (3.1-6.0mm): <strong><t t-esc="widget.kpis.warning_tires"/></strong> (<t t-esc="widget.wear_distribution.warning_pct"/>%)</span>
+                            <input type="text" class="form-control form-control-sm mb-1 js_search_vehicle_filter" placeholder="Search vehicle / nopol..." style="font-size: 11px; padding: 2px 6px; height: 26px;"/>
+                            <div class="vehicle-checkbox-list" style="max-height: 65px; overflow-y: auto; background: #ffffff; border: 1px solid #dee2e6; border-radius: 4px; padding: 4px 6px;">
+                                <t t-if="widget.monitoring_report &amp;&amp; widget.monitoring_report.vehicles &amp;&amp; widget.monitoring_report.vehicles.length">
+                                    <t t-foreach="widget.monitoring_report.vehicles" t-as="v">
+                                        <div class="form-check vehicle-item-option" style="margin-bottom: 2px;">
+                                            <input class="form-check-input js_check_vehicle_filter" type="checkbox" t-att-value="v.name" t-att-id="'veh_chk_' + v.name.replace(' ', '_')"/>
+                                            <label class="form-check-label text-truncate" t-att-for="'veh_chk_' + v.name.replace(' ', '_')" style="font-size: 11px; cursor: pointer;">
+                                                <t t-esc="v.name"/>
+                                            </label>
+                                        </div>
+                                    </t>
+                                </t>
+                                <t t-else="">
+                                    <div class="text-muted text-center p-1" style="font-size: 11px;">No vehicles available for selected hub</div>
+                                </t>
                             </div>
-                            <div class="js_filter_wear_state" data-state="critical" style="cursor: pointer;" title="Click to filter Critical tires">
-                                <span style="display: inline-block; width: 12px; height: 12px; border-radius: 3px; background-color: #dc3545; margin-right: 6px;"/>
-                                <span>🔴 Critical (&lt;=3.0mm): <strong><t t-esc="widget.kpis.critical_tires"/></strong> (<t t-esc="widget.wear_distribution.critical_pct"/>%)</span>
+                        </div>
+
+                        <!-- Row 2: Brand Checkbox List with Search Box -->
+                        <div class="filter-box mb-2" style="background: #f8f9fa; border: 1px solid #e9ecef; border-radius: 8px; padding: 8px 10px;">
+                            <div class="d-flex justify-content-between align-items-center mb-1">
+                                <strong style="font-size: 11px; font-weight: 700; color: #1e62d0; text-transform: uppercase;">
+                                    <i class="fa fa-tags mr-1"/> Tire Brands
+                                </strong>
+                                <button class="btn btn-link btn-xs js_clear_brand_filter p-0" style="font-size: 10px;">Reset</button>
+                            </div>
+                            <input type="text" class="form-control form-control-sm mb-1 js_search_brand_filter" placeholder="Search brand..." style="font-size: 11px; padding: 2px 6px; height: 26px;"/>
+                            <div class="brand-checkbox-list" style="max-height: 65px; overflow-y: auto; background: #ffffff; border: 1px solid #dee2e6; border-radius: 4px; padding: 4px 6px;">
+                                <t t-if="widget.monitoring_report &amp;&amp; widget.monitoring_report.brands &amp;&amp; widget.monitoring_report.brands.length">
+                                    <t t-foreach="widget.monitoring_report.brands" t-as="b">
+                                        <div class="form-check brand-item-option" style="margin-bottom: 2px;">
+                                            <input class="form-check-input js_check_brand_filter" type="checkbox" t-att-value="b.name" t-att-id="'brand_chk_' + b.name.replace(' ', '_')"/>
+                                            <label class="form-check-label text-truncate" t-att-for="'brand_chk_' + b.name.replace(' ', '_')" style="font-size: 11px; cursor: pointer;">
+                                                <t t-esc="b.name"/>
+                                            </label>
+                                        </div>
+                                    </t>
+                                </t>
+                                <t t-else="">
+                                    <div class="text-muted text-center p-1" style="font-size: 11px;">No brands available</div>
+                                </t>
+                            </div>
+                        </div>
+
+                        <!-- Row 3: Tire Size Checkbox List with Search Box -->
+                        <div class="filter-box" style="background: #f8f9fa; border: 1px solid #e9ecef; border-radius: 8px; padding: 8px 10px;">
+                            <div class="d-flex justify-content-between align-items-center mb-1">
+                                <strong style="font-size: 11px; font-weight: 700; color: #1e62d0; text-transform: uppercase;">
+                                    <i class="fa fa-arrows-h mr-1"/> Tire Sizes
+                                </strong>
+                                <button class="btn btn-link btn-xs js_clear_size_filter p-0" style="font-size: 10px;">Reset</button>
+                            </div>
+                            <input type="text" class="form-control form-control-sm mb-1 js_search_size_filter" placeholder="Search tire size..." style="font-size: 11px; padding: 2px 6px; height: 26px;"/>
+                            <div class="size-checkbox-list" style="max-height: 65px; overflow-y: auto; background: #ffffff; border: 1px solid #dee2e6; border-radius: 4px; padding: 4px 6px;">
+                                <t t-if="widget.monitoring_report &amp;&amp; widget.monitoring_report.sizes &amp;&amp; widget.monitoring_report.sizes.length">
+                                    <t t-foreach="widget.monitoring_report.sizes" t-as="s">
+                                        <div class="form-check size-item-option" style="margin-bottom: 2px;">
+                                            <input class="form-check-input js_check_size_filter" type="checkbox" t-att-value="s.name" t-att-id="'size_chk_' + s.name.replace(' ', '_')"/>
+                                            <label class="form-check-label text-truncate" t-att-for="'size_chk_' + s.name.replace(' ', '_')" style="font-size: 11px; cursor: pointer;">
+                                                <t t-esc="s.name"/>
+                                            </label>
+                                        </div>
+                                    </t>
+                                </t>
+                                <t t-else="">
+                                    <div class="text-muted text-center p-1" style="font-size: 11px;">No sizes available</div>
+                                </t>
                             </div>
                         </div>
                     </div>
+                </div>
+            </div>
 
-                    <!-- Real-Time Tire Pressure (PSI) Telemetry Matrix -->
-                    <div class="panel-header mt-3">
-                        <h3>
-                            <i class="fa fa-tachometer mr-2"/>Real-Time Tire Pressure (PSI) Telemetry
-                        </h3>
-                        <span class="badge badge-info js_drilldown_psi_alerts" style="cursor: pointer;" title="Click to view PSI telemetry detail">
-                            <t t-esc="widget.psi_distribution.total_tracked"/> Mounted Tracked &gt;
-                        </span>
-                    </div>
-                    <div class="psi-matrix-container p-2 mb-3" style="background: #f8f9fa; border-radius: 8px;">
-                        <div class="d-flex justify-content-between mb-1" style="font-size: 12px; font-weight: 600;">
-                            <span>Tire Pressure Status</span>
-                            <span>
-                                <span class="text-success mr-2">🟢 Standard (<t t-esc="widget.psi_distribution.normal_count"/>)</span>
-                                <span class="text-warning mr-2">🟡 Low (<t t-esc="widget.psi_distribution.low_count"/>)</span>
-                                <span class="text-danger">🔴 Critical (<t t-esc="widget.psi_distribution.critical_count"/>)</span>
+            <!-- Secondary Widgets Panel (PSI Telemetry, Rotation, Forecaster) -->
+            <div class="dashboard-panel mb-4">
+                <div class="row">
+                    <div class="col-md-6 col-12 mb-3 mb-md-0">
+                        <!-- Real-Time Tire Pressure (PSI) Telemetry Matrix -->
+                        <div class="panel-header">
+                            <h3>
+                                <i class="fa fa-tachometer mr-2"/>Real-Time Tire Pressure (PSI) Telemetry
+                            </h3>
+                            <span class="badge badge-info js_drilldown_psi_alerts" style="cursor: pointer;" title="Click to view PSI telemetry detail">
+                                <t t-esc="widget.psi_distribution.total_tracked"/> Mounted Tracked &gt;
                             </span>
                         </div>
-                        <div class="progress" style="height: 14px; border-radius: 7px; overflow: hidden;">
-                            <div class="progress-bar bg-success" role="progressbar" t-att-style="'width: ' + widget.psi_distribution.normal_pct + '%'" t-att-title="'Normal PSI: ' + widget.psi_distribution.normal_count + ' tires (' + widget.psi_distribution.normal_pct + '%)'"/>
-                            <div class="progress-bar bg-warning" role="progressbar" t-att-style="'width: ' + widget.psi_distribution.low_pct + '%'" t-att-title="'Low PSI: ' + widget.psi_distribution.low_count + ' tires (' + widget.psi_distribution.low_pct + '%)'"/>
-                            <div class="progress-bar bg-danger" role="progressbar" t-att-style="'width: ' + widget.psi_distribution.critical_pct + '%'" t-att-title="'Critical PSI: ' + widget.psi_distribution.critical_count + ' tires (' + widget.psi_distribution.critical_pct + '%)'"/>
+                        <div class="psi-matrix-container p-2 mb-3" style="background: #f8f9fa; border-radius: 8px;">
+                            <div class="d-flex justify-content-between mb-1" style="font-size: 12px; font-weight: 600;">
+                                <span>Tire Pressure Status</span>
+                                <span>
+                                    <span class="text-success mr-2">🟢 Standard (<t t-esc="widget.psi_distribution.normal_count"/>)</span>
+                                    <span class="text-warning mr-2">🟡 Low (<t t-esc="widget.psi_distribution.low_count"/>)</span>
+                                    <span class="text-danger">🔴 Critical (<t t-esc="widget.psi_distribution.critical_count"/>)</span>
+                                </span>
+                            </div>
+                            <div class="progress" style="height: 14px; border-radius: 7px; overflow: hidden;">
+                                <div class="progress-bar bg-success" role="progressbar" t-att-style="'width: ' + widget.psi_distribution.normal_pct + '%'" t-att-title="'Normal PSI: ' + widget.psi_distribution.normal_count + ' tires (' + widget.psi_distribution.normal_pct + '%)'"/>
+                                <div class="progress-bar bg-warning" role="progressbar" t-att-style="'width: ' + widget.psi_distribution.low_pct + '%'" t-att-title="'Low PSI: ' + widget.psi_distribution.low_count + ' tires (' + widget.psi_distribution.low_pct + '%)'"/>
+                                <div class="progress-bar bg-danger" role="progressbar" t-att-style="'width: ' + widget.psi_distribution.critical_pct + '%'" t-att-title="'Critical PSI: ' + widget.psi_distribution.critical_count + ' tires (' + widget.psi_distribution.critical_pct + '%)'"/>
+                            </div>
+                            <div class="d-flex justify-content-between mt-2 text-muted" style="font-size: 11px;">
+                                <span>Standard: &gt;= 100 PSI</span>
+                                <span>Low: 85 - 99 PSI</span>
+                                <span>Critical: &lt; 85 PSI</span>
+                            </div>
                         </div>
-                        <div class="d-flex justify-content-between mt-2 text-muted" style="font-size: 11px;">
-                            <span>Standard: &gt;= 100 PSI</span>
-                            <span>Low: 85 - 99 PSI</span>
-                            <span>Critical: &lt; 85 PSI</span>
+
+                        <!-- Automated Tire Rotation Opportunities Widget -->
+                        <div class="panel-header mt-3">
+                            <h3><i class="fa fa-retweet mr-2"/>Recommended Tire Rotation Opportunities</h3>
+                        </div>
+                        <div class="alert-queue-list mb-3">
+                            <t t-if="widget.rotation_recommendations &amp;&amp; widget.rotation_recommendations.length">
+                                <t t-foreach="widget.rotation_recommendations" t-as="rot">
+                                    <div class="alert-item-card warning js_open_chassis_diagram" t-att-data-vehicle-id="rot.vehicle_id">
+                                        <div class="alert-title-row">
+                                            <span><i class="fa fa-refresh mr-1"/><t t-esc="rot.action"/></span>
+                                            <span class="text-muted"><t t-esc="rot.vehicle_name"/></span>
+                                        </div>
+                                        <p class="alert-msg"><t t-esc="rot.reason"/></p>
+                                    </div>
+                                </t>
+                            </t>
+                            <t t-else="">
+                                <div class="p-2 text-center text-muted" style="background-color: #f8f9fa; border-radius: 4px;">
+                                    <i class="fa fa-check mr-1"/> Steer axle tires currently balanced within equal wear tolerances.
+                                </div>
+                            </t>
                         </div>
                     </div>
 
-                    <!-- Automated Tire Rotation Opportunities Widget -->
-                    <div class="panel-header mt-3">
-                        <h3><i class="fa fa-retweet mr-2"/>Recommended Tire Rotation Opportunities</h3>
-                    </div>
-                    <div class="alert-queue-list mb-3">
-                        <t t-if="widget.rotation_recommendations &amp;&amp; widget.rotation_recommendations.length">
-                            <t t-foreach="widget.rotation_recommendations" t-as="rot">
-                                <div class="alert-item-card warning js_open_chassis_diagram" t-att-data-vehicle-id="rot.vehicle_id">
-                                    <div class="alert-title-row">
-                                        <span><i class="fa fa-refresh mr-1"/><t t-esc="rot.action"/></span>
-                                        <span class="text-muted"><t t-esc="rot.vehicle_name"/></span>
+                    <div class="col-md-6 col-12">
+                        <!-- Predictive Tire Lifespan Replacement Forecaster -->
+                        <div class="panel-header">
+                            <h3><i class="fa fa-calendar-check-o mr-2"/>Predictive Replacement Forecaster (Next 30 Days)</h3>
+                        </div>
+                        <div class="alert-queue-list">
+                            <t t-if="widget.replacement_forecast &amp;&amp; widget.replacement_forecast.length">
+                                <t t-foreach="widget.replacement_forecast" t-as="f">
+                                    <div t-attf-class="alert-item-card #{f.urgency} js_open_chassis_diagram" t-att-data-vehicle-id="f.vehicle_id">
+                                        <div class="alert-title-row">
+                                            <span><t t-esc="f.vehicle_name"/> (Pos <t t-esc="f.pos_code"/>) — Est: <t t-esc="f.est_days"/></span>
+                                            <span class="badge badge-danger">RTD <t t-esc="f.rtd"/> mm</span>
+                                        </div>
+                                        <p class="alert-msg">Serial: <t t-esc="f.serial_number"/> | Priority tire replacement forecast.</p>
                                     </div>
-                                    <p class="alert-msg"><t t-esc="rot.reason"/></p>
+                                </t>
+                            </t>
+                            <t t-else="">
+                                <div class="p-2 text-center text-muted" style="background-color: #f8f9fa; border-radius: 4px;">
+                                    <i class="fa fa-shield mr-1"/> All mounted fleet tires have sufficient remaining tread depth.
                                 </div>
                             </t>
-                        </t>
-                        <t t-else="">
-                            <div class="p-2 text-center text-muted" style="background-color: #f8f9fa; border-radius: 4px;">
-                                <i class="fa fa-check mr-1"/> Steer axle tires currently balanced within equal wear tolerances.
-                            </div>
-                        </t>
-                    </div>
-
-                    <!-- Predictive Tire Lifespan Replacement Forecaster -->
-                    <div class="panel-header mt-3">
-                        <h3><i class="fa fa-calendar-check-o mr-2"/>Predictive Replacement Forecaster (Next 30 Days)</h3>
-                    </div>
-                    <div class="alert-queue-list">
-                        <t t-if="widget.replacement_forecast &amp;&amp; widget.replacement_forecast.length">
-                            <t t-foreach="widget.replacement_forecast" t-as="f">
-                                <div t-attf-class="alert-item-card #{f.urgency} js_open_chassis_diagram" t-att-data-vehicle-id="f.vehicle_id">
-                                    <div class="alert-title-row">
-                                        <span><t t-esc="f.vehicle_name"/> (Pos <t t-esc="f.pos_code"/>) — Est: <t t-esc="f.est_days"/></span>
-                                        <span class="badge badge-danger">RTD <t t-esc="f.rtd"/> mm</span>
-                                    </div>
-                                    <p class="alert-msg">Serial: <t t-esc="f.serial_number"/> | Priority tire replacement forecast.</p>
-                                </div>
-                            </t>
-                        </t>
-                        <t t-else="">
-                            <div class="p-2 text-center text-muted" style="background-color: #f8f9fa; border-radius: 4px;">
-                                <i class="fa fa-shield mr-1"/> All mounted fleet tires have sufficient remaining tread depth.
-                            </div>
-                        </t>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -249,7 +453,7 @@
             <div class="dashboard-panel mb-4">
                 <div class="panel-header" style="flex-wrap: wrap; gap: 10px;">
                     <h3>
-                        <i class="fa fa-money mr-2"/>Monthly CPK Billing Projections &amp; Min-KM Guarantee Floor Deficit
+                        <i class="fa fa-money mr-2"/>Monthly CPK Billing Revenue &amp; Minimum Distance Shortfall
                     </h3>
                     <div style="display: flex; align-items: center; gap: 10px;">
                         <span class="badge badge-info">Period: <t t-esc="widget.cpk_billing_summary.periode_str"/></span>
@@ -262,69 +466,75 @@
                 <!-- 4 Financial Metric Badges -->
                 <div class="financial-metrics-grid mb-3" style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 14px;">
                     <div class="coupling-card text-center p-3" style="background: #eef4ff; border-radius: 8px; border-left: 4px solid #1e62d0;">
-                        <div style="font-size: 11px; font-weight: 700; color: #6c757d; text-transform: uppercase;">Projected Billing Revenue</div>
+                        <div style="font-size: 11px; font-weight: 700; color: #6c757d; text-transform: uppercase;">Total Projected Billing</div>
                         <div style="font-size: 20px; font-weight: 800; color: #1e62d0;"><t t-esc="widget.cpk_billing_summary.projected_billing_str"/></div>
-                        <div style="font-size: 11px; color: #6c757d; margin-top: 2px;">Estimated CPK Billing Output</div>
+                        <div style="font-size: 11px; color: #6c757d; margin-top: 2px;">Nilai Tagihan (Aktual + Selisih)</div>
                     </div>
                     <div class="coupling-card text-center p-3" style="background: #e8f8ec; border-radius: 8px; border-left: 4px solid #28a745;">
                         <div style="font-size: 11px; font-weight: 700; color: #6c757d; text-transform: uppercase;">CPK Contract Hubs</div>
                         <div style="font-size: 20px; font-weight: 800; color: #28a745;"><t t-esc="widget.cpk_billing_summary.cpk_hubs"/> Operating Units</div>
-                        <div style="font-size: 11px; color: #6c757d; margin-top: 2px;">Billing Eligible Locations</div>
+                        <div style="font-size: 11px; color: #6c757d; margin-top: 2px;">Lokasi Billing Operating Unit</div>
                     </div>
                     <div class="coupling-card text-center p-3" style="background: #fffdf2; border-radius: 8px; border-left: 4px solid #ffc107;">
-                        <div style="font-size: 11px; font-weight: 700; color: #6c757d; text-transform: uppercase;">Under-Utilized Units</div>
+                        <div style="font-size: 11px; font-weight: 700; color: #6c757d; text-transform: uppercase;">Shortfall Vehicles (&lt; 2.5k KM)</div>
                         <div style="font-size: 20px; font-weight: 800; color: #d97706;"><t t-esc="widget.cpk_billing_summary.deficit_vehicle_count"/> Vehicles</div>
-                        <div style="font-size: 11px; color: #6c757d; margin-top: 2px;">Distance Below Min-KM Guarantee</div>
+                        <div style="font-size: 11px; color: #6c757d; margin-top: 2px;">Kendaraan di Bawah Minimum KM</div>
                     </div>
                     <div class="coupling-card text-center p-3" style="background: #fdf2f2; border-radius: 8px; border-left: 4px solid #dc3545;">
-                        <div style="font-size: 11px; font-weight: 700; color: #6c757d; text-transform: uppercase;">Min-KM Deficit Guarantee Value</div>
+                        <div style="font-size: 11px; font-weight: 700; color: #6c757d; text-transform: uppercase;">Shortfall Recovery Value</div>
                         <div style="font-size: 20px; font-weight: 800; color: #dc3545;"><t t-esc="widget.cpk_billing_summary.adjustment_str"/></div>
-                        <div style="font-size: 11px; color: #6c757d; margin-top: 2px;">Revenue Floor Recovery Amount</div>
+                        <div style="font-size: 11px; color: #6c757d; margin-top: 2px;">Nilai Tagihan Selisih Minimum KM</div>
                     </div>
                 </div>
 
-                <!-- Under-Utilized Vehicles Table -->
-                <h4 style="font-size: 14px; font-weight: 700; color: #495057; margin-bottom: 10px;">
-                    Under-Utilized Vehicles Operating Below Min-KM Floor Guarantee (&lt; 2,500 KM)
-                </h4>
-                <div class="table-responsive" style="max-height: 260px; overflow-y: auto;">
-                    <table class="brand-table">
-                        <thead>
-                            <tr>
-                                <th>Vehicle Unit</th>
-                                <th>Hub Location</th>
-                                <th class="text-right">Actual Distance (KM)</th>
-                                <th class="text-right">Min Guarantee (KM)</th>
-                                <th class="text-right">Deficit Gap (KM)</th>
-                                <th class="text-center">Mounted Tires</th>
-                                <th class="text-right">CPK Rate</th>
-                                <th class="text-right">Guarantee Revenue Adjustment</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            <t t-if="widget.min_km_deficit_vehicles &amp;&amp; widget.min_km_deficit_vehicles.length">
-                                <t t-foreach="widget.min_km_deficit_vehicles" t-as="dv">
-                                    <tr class="js_open_chassis_diagram" t-att-data-vehicle-id="dv.vehicle_id" style="cursor: pointer;" title="Click to view vehicle chassis diagram">
-                                        <td><strong><t t-esc="dv.nomor_lambung"/></strong></td>
-                                        <td><t t-esc="dv.hub_name"/></td>
-                                        <td class="text-right"><t t-esc="dv.km_aktual.toLocaleString()"/> km</td>
-                                        <td class="text-right"><t t-esc="dv.min_threshold.toLocaleString()"/> km</td>
-                                        <td class="text-right font-weight-bold text-danger">(<t t-esc="dv.deficit_km.toLocaleString()"/> km)</td>
-                                        <td class="text-center"><t t-esc="dv.tire_count"/></td>
-                                        <td class="text-right">Rp <t t-esc="dv.cpk_rate"/></td>
-                                        <td class="text-right font-weight-bold text-success"><t t-esc="dv.adjustment_str"/></td>
-                                    </tr>
-                                </t>
-                            </t>
-                            <t t-else="">
-                                <tr>
-                                    <td colspan="8" class="text-center text-muted p-3">
-                                        <i class="fa fa-check-circle text-success mr-1"/> All active vehicles in CPK billing hubs have met or exceeded minimum guaranteed distance thresholds.
-                                    </td>
-                                </tr>
-                            </t>
-                        </tbody>
-                    </table>
+                <!-- 2-Column CPK Billing Analytics Graph Section -->
+                <div class="row mt-3">
+                    <!-- Left Chart: Revenue & Deficit Recovery per Operating Hub -->
+                    <div class="col-md-7 col-12 mb-3 mb-md-0">
+                        <div class="p-3" style="background: #ffffff; border: 1px solid #e9ecef; border-radius: 8px;">
+                            <div class="d-flex justify-content-between align-items-center mb-2 pb-1 border-bottom">
+                                <strong style="font-size: 12px; font-weight: 700; color: #1e62d0;">
+                                    <i class="fa fa-bar-chart mr-1"/> Hub Revenue Output: Actual Distance vs Minimum Shortfall Adjustment
+                                </strong>
+                                <span class="badge badge-light text-muted" style="font-size: 10px;">Billing Output (Rp)</span>
+                            </div>
+                            <div class="d-flex align-items-center mb-2" style="gap: 12px; font-size: 11px; font-weight: 600;">
+                                <span style="color: #1e62d0;"><i class="fa fa-square mr-1" style="color: #1e62d0;"/> Base Distance Revenue (Rp)</span>
+                                <span style="color: #fd7e14;"><i class="fa fa-square mr-1" style="color: #fd7e14;"/> Shortfall Recovery Value (Rp)</span>
+                            </div>
+                            <div style="position: relative; width: 100%; height: 190px;">
+                                <canvas id="js_cpk_hub_revenue_canvas" style="width: 100%; height: 100%;"></canvas>
+                            </div>
+                            <div class="chart-description-banner mt-2 p-2" style="background: #f0f4fc; border-left: 4px solid #1e62d0; border-radius: 4px; font-size: 11px; color: #2c3e50;">
+                                <i class="fa fa-info-circle text-primary mr-1"/>
+                                <strong>Hub Billing Breakdown:</strong> Compares <strong>Base Billing</strong> <em>(Actual KM × CPK Rate × Mounted Tires)</em> against <strong>Shortfall Recovery</strong> <em>(Adjustment revenue for vehicles operating below 2,500 KM minimum threshold)</em> for each active CPK Operating Unit.
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Right Chart: Vehicle Guarantee Utilization Status -->
+                    <div class="col-md-5 col-12">
+                        <div class="p-3" style="background: #ffffff; border: 1px solid #e9ecef; border-radius: 8px;">
+                            <div class="d-flex justify-content-between align-items-center mb-2 pb-1 border-bottom">
+                                <strong style="font-size: 12px; font-weight: 700; color: #1e62d0;">
+                                    <i class="fa fa-pie-chart mr-1"/> Fleet Distance Compliance vs Minimum Floor (2,500 KM)
+                                </strong>
+                                <span class="badge badge-light text-muted" style="font-size: 10px;">2,500 KM Floor Target</span>
+                            </div>
+                            <div class="d-flex align-items-center mb-2 flex-wrap" style="gap: 10px; font-size: 11px; font-weight: 600;">
+                                <span style="color: #28a745;"><i class="fa fa-circle mr-1" style="color: #28a745;"/> Target Met (≥ 2.5k KM)</span>
+                                <span style="color: #d97706;"><i class="fa fa-circle mr-1" style="color: #ffc107;"/> Near Target (2k-2.5k)</span>
+                                <span style="color: #dc3545;"><i class="fa fa-circle mr-1" style="color: #dc3545;"/> Shortfall (&lt; 2k KM)</span>
+                            </div>
+                            <div style="position: relative; width: 100%; height: 190px;">
+                                <canvas id="js_cpk_utilization_canvas" style="width: 100%; height: 100%;"></canvas>
+                            </div>
+                            <div class="chart-description-banner mt-2 p-2" style="background: #f0f4fc; border-left: 4px solid #1e62d0; border-radius: 4px; font-size: 11px; color: #2c3e50;">
+                                <i class="fa fa-info-circle text-primary mr-1"/>
+                                <strong>Mileage Performance Compliance:</strong> Categorizes fleet vehicles by monthly distance compliance: <strong>Target Met</strong> <em>(≥ 2,500 KM)</em>, <strong>Near Target</strong> <em>(2,000–2,499 KM)</em>, and <strong>Shortfall Deficit</strong> <em>(&lt; 2,000 KM)</em>.
+                            </div>
+                        </div>
+                    </div>
                 </div>
             </div>
 
@@ -375,311 +585,6 @@
                             <i class="fa fa-info-circle mr-1"/> No recent trailer exchange logs recorded.
                         </div>
                     </t>
-                </div>
-            </div>
-
-            <!-- Bottom Section: Multi-Dimensional Tire Brand & Pattern Performance Benchmarking -->
-            <div class="dashboard-panel mb-4">
-                <div class="panel-header" style="flex-wrap: wrap; gap: 10px;">
-                    <h3><i class="fa fa-bar-chart mr-2"/>Tire Brand &amp; Tread Pattern Performance Duel</h3>
-                    <div style="display: flex; align-items: center; gap: 8px;">
-                        <!-- Category Filter Dropdown -->
-                        <select class="form-control form-control-sm js_filter_brand_category" style="max-width: 150px;">
-                            <option value="">All Categories</option>
-                            <option value="original" t-att-selected="widget.active_brand_category == 'original' ? 'selected' : None">Original Tires</option>
-                            <option value="retread" t-att-selected="widget.active_brand_category == 'retread' ? 'selected' : None">Retread Tires</option>
-                        </select>
-
-                        <!-- Multi-Dimensional Sorting Dropdown (No Price Metrics) -->
-                        <select class="form-control form-control-sm js_filter_brand_sort" style="max-width: 190px;">
-                            <option value="wear_rate" t-att-selected="widget.active_brand_sort == 'wear_rate' ? 'selected' : None">Sort by Wear Index (KM/mm)</option>
-                            <option value="mileage" t-att-selected="widget.active_brand_sort == 'mileage' ? 'selected' : None">Sort by Avg Mileage (KM)</option>
-                            <option value="retread" t-att-selected="widget.active_brand_sort == 'retread' ? 'selected' : None">Sort by Retreadability %</option>
-                            <option value="failure" t-att-selected="widget.active_brand_sort == 'failure' ? 'selected' : None">Sort by Low Failure Risk</option>
-                            <option value="count" t-att-selected="widget.active_brand_sort == 'count' ? 'selected' : None">Sort by Serials Count</option>
-                        </select>
-
-                        <span class="badge badge-primary"><t t-esc="widget.filtered_brand_performance.length"/> Brands</span>
-                        <t t-if="widget.best_brand_leader &amp;&amp; widget.best_brand_leader != '-'">
-                            <span class="badge badge-success">Top Wear Index: <t t-esc="widget.best_brand_leader"/></span>
-                        </t>
-                    </div>
-                </div>
-
-                <!-- Interactive 1-on-1 Brand Duel Selector Widget -->
-                <div class="brand-duel-container p-3 mb-4" style="background: #f8f9fa; border-radius: 8px; border: 1px solid #e9ecef;">
-                    <h4 style="font-size: 14px; font-weight: 700; color: #1e62d0; margin-bottom: 12px;">
-                        ⚔️ Interactive Head-to-Head Brand Duel Comparison
-                    </h4>
-                    <div class="d-flex flex-wrap align-items-center mb-3" style="gap: 12px;">
-                        <div style="flex: 1; min-width: 180px;">
-                            <label style="font-size: 11px; font-weight: 700; color: #6c757d; margin-bottom: 2px;">BRAND A</label>
-                            <select class="form-control form-control-sm js_select_brand_duel_a">
-                                <option value="">-- Select Brand A --</option>
-                                <t t-foreach="widget.brand_performance" t-as="b">
-                                    <option t-att-value="b.brand" t-att-selected="widget.brand_duel_a &amp;&amp; widget.brand_duel_a.brand == b.brand ? 'selected' : None">
-                                        <t t-esc="b.brand"/> (<t t-esc="b.count"/> serials)
-                                    </option>
-                                </t>
-                            </select>
-                        </div>
-                        <div class="text-center font-weight-bold" style="font-size: 16px; color: #dc3545; padding-top: 16px;">VS</div>
-                        <div style="flex: 1; min-width: 180px;">
-                            <label style="font-size: 11px; font-weight: 700; color: #6c757d; margin-bottom: 2px;">BRAND B</label>
-                            <select class="form-control form-control-sm js_select_brand_duel_b">
-                                <option value="">-- Select Brand B --</option>
-                                <t t-foreach="widget.brand_performance" t-as="b">
-                                    <option t-att-value="b.brand" t-att-selected="widget.brand_duel_b &amp;&amp; widget.brand_duel_b.brand == b.brand ? 'selected' : None">
-                                        <t t-esc="b.brand"/> (<t t-esc="b.count"/> serials)
-                                    </option>
-                                </t>
-                            </select>
-                        </div>
-                    </div>
-
-                    <!-- Dual Comparison Result Cards with Mini Graphs -->
-                    <t t-if="widget.brand_duel_a &amp;&amp; widget.brand_duel_b">
-                        <div class="duel-results-grid" style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px;">
-                            <!-- Metric 1: Wear Rate Index with Mini Comparison Bar Graph -->
-                            <div class="duel-card p-2" style="background: #ffffff; border-radius: 6px; border: 1px solid #e9ecef;">
-                                <div style="font-size: 11px; font-weight: 700; color: #6c757d;" class="text-center">RUBBER WEAR INDEX</div>
-                                <div class="mt-2" style="font-size: 11px;">
-                                    <div class="d-flex justify-content-between align-items-center mb-1">
-                                        <span><strong><t t-esc="widget.brand_duel_a.brand"/></strong>:</span>
-                                        <span t-att-class="widget.brand_duel_a.km_per_mm &gt;= widget.brand_duel_b.km_per_mm ? 'text-success font-weight-bold' : 'text-dark'">
-                                            <t t-esc="widget.brand_duel_a.km_per_mm.toLocaleString()"/> km/mm
-                                        </span>
-                                    </div>
-                                    <div style="height: 6px; background-color: #e9ecef; border-radius: 3px; overflow: hidden; margin-bottom: 6px;">
-                                        <div t-attf-style="width: #{widget.brand_duel_a.bar_pct}%; height: 100%; background-color: #1e62d0; border-radius: 3px;"/>
-                                    </div>
-
-                                    <div class="d-flex justify-content-between align-items-center mb-1">
-                                        <span><strong><t t-esc="widget.brand_duel_b.brand"/></strong>:</span>
-                                        <span t-att-class="widget.brand_duel_b.km_per_mm &gt;= widget.brand_duel_a.km_per_mm ? 'text-success font-weight-bold' : 'text-dark'">
-                                            <t t-esc="widget.brand_duel_b.km_per_mm.toLocaleString()"/> km/mm
-                                        </span>
-                                    </div>
-                                    <div style="height: 6px; background-color: #e9ecef; border-radius: 3px; overflow: hidden;">
-                                        <div t-attf-style="width: #{widget.brand_duel_b.bar_pct}%; height: 100%; background-color: #17a2b8; border-radius: 3px;"/>
-                                    </div>
-                                </div>
-                                <div class="text-center mt-2">
-                                    <span class="badge badge-success">
-                                        🏆 Winner: <t t-esc="widget.brand_duel_a.km_per_mm &gt;= widget.brand_duel_b.km_per_mm ? widget.brand_duel_a.brand : widget.brand_duel_b.brand"/>
-                                    </span>
-                                </div>
-                            </div>
-
-                            <!-- Metric 2: Best Axle Fit & Distribution Sparkline -->
-                            <div class="duel-card p-2 text-center" style="background: #ffffff; border-radius: 6px; border: 1px solid #e9ecef;">
-                                <div style="font-size: 11px; font-weight: 700; color: #6c757d;">AXLE SUITABILITY</div>
-                                <div class="d-flex justify-content-around mt-2" style="font-size: 12px; font-weight: 700;">
-                                    <div>
-                                        <small style="color: #6c757d;"><t t-esc="widget.brand_duel_a.brand"/></small><br/>
-                                        <span class="text-primary"><t t-esc="widget.brand_duel_a.best_axle"/></span>
-                                    </div>
-                                    <div>
-                                        <small style="color: #6c757d;"><t t-esc="widget.brand_duel_b.brand"/></small><br/>
-                                        <span class="text-info"><t t-esc="widget.brand_duel_b.best_axle"/></span>
-                                    </div>
-                                </div>
-                                <div class="badge badge-info mt-2">Position Suitability</div>
-                            </div>
-
-                            <!-- Metric 3: Casing Retreadability Graph -->
-                            <div class="duel-card p-2" style="background: #ffffff; border-radius: 6px; border: 1px solid #e9ecef;">
-                                <div style="font-size: 11px; font-weight: 700; color: #6c757d;" class="text-center">RETREADABILITY %</div>
-                                <div class="mt-2" style="font-size: 11px;">
-                                    <div class="d-flex justify-content-between align-items-center mb-1">
-                                        <span><strong><t t-esc="widget.brand_duel_a.brand"/></strong>:</span>
-                                        <span t-att-class="widget.brand_duel_a.retread_pct &gt;= widget.brand_duel_b.retread_pct ? 'text-success font-weight-bold' : 'text-dark'">
-                                            <t t-esc="widget.brand_duel_a.retread_pct"/>%
-                                        </span>
-                                    </div>
-                                    <div style="height: 6px; background-color: #e9ecef; border-radius: 3px; overflow: hidden; margin-bottom: 6px;">
-                                        <div t-attf-style="width: #{widget.brand_duel_a.retread_pct}%; height: 100%; background-color: #28a745; border-radius: 3px;"/>
-                                    </div>
-
-                                    <div class="d-flex justify-content-between align-items-center mb-1">
-                                        <span><strong><t t-esc="widget.brand_duel_b.brand"/></strong>:</span>
-                                        <span t-att-class="widget.brand_duel_b.retread_pct &gt;= widget.brand_duel_a.retread_pct ? 'text-success font-weight-bold' : 'text-dark'">
-                                            <t t-esc="widget.brand_duel_b.retread_pct"/>%
-                                        </span>
-                                    </div>
-                                    <div style="height: 6px; background-color: #e9ecef; border-radius: 3px; overflow: hidden;">
-                                        <div t-attf-style="width: #{widget.brand_duel_b.retread_pct}%; height: 100%; background-color: #20c997; border-radius: 3px;"/>
-                                    </div>
-                                </div>
-                                <div class="text-center mt-2">
-                                    <span class="badge badge-success">
-                                        🏆 Winner: <t t-esc="widget.brand_duel_a.retread_pct &gt;= widget.brand_duel_b.retread_pct ? widget.brand_duel_a.brand : widget.brand_duel_b.brand"/>
-                                    </span>
-                                </div>
-                            </div>
-
-                            <!-- Metric 4: Premature Scrap Risk Sparkline -->
-                            <div class="duel-card p-2" style="background: #ffffff; border-radius: 6px; border: 1px solid #e9ecef;">
-                                <div style="font-size: 11px; font-weight: 700; color: #6c757d;" class="text-center">PREMATURE SCRAP RISK</div>
-                                <div class="mt-2" style="font-size: 11px;">
-                                    <div class="d-flex justify-content-between align-items-center mb-1">
-                                        <span><strong><t t-esc="widget.brand_duel_a.brand"/></strong>:</span>
-                                        <span t-att-class="widget.brand_duel_a.failure_pct &lt;= widget.brand_duel_b.failure_pct ? 'text-success font-weight-bold' : 'text-danger'">
-                                            <t t-esc="widget.brand_duel_a.failure_pct"/>%
-                                        </span>
-                                    </div>
-                                    <div style="height: 6px; background-color: #e9ecef; border-radius: 3px; overflow: hidden; margin-bottom: 6px;">
-                                        <div t-attf-style="width: #{widget.brand_duel_a.failure_pct}%; height: 100%; background-color: #dc3545; border-radius: 3px;"/>
-                                    </div>
-
-                                    <div class="d-flex justify-content-between align-items-center mb-1">
-                                        <span><strong><t t-esc="widget.brand_duel_b.brand"/></strong>:</span>
-                                        <span t-att-class="widget.brand_duel_b.failure_pct &lt;= widget.brand_duel_a.failure_pct ? 'text-success font-weight-bold' : 'text-danger'">
-                                            <t t-esc="widget.brand_duel_b.failure_pct"/>%
-                                        </span>
-                                    </div>
-                                    <div style="height: 6px; background-color: #e9ecef; border-radius: 3px; overflow: hidden;">
-                                        <div t-attf-style="width: #{widget.brand_duel_b.failure_pct}%; height: 100%; background-color: #fd7e14; border-radius: 3px;"/>
-                                    </div>
-                                </div>
-                                <div class="text-center mt-2">
-                                    <span class="badge badge-success">
-                                        🛡️ Safer: <t t-esc="widget.brand_duel_a.failure_pct &lt;= widget.brand_duel_b.failure_pct ? widget.brand_duel_a.brand : widget.brand_duel_b.brand"/>
-                                    </span>
-                                </div>
-                            </div>
-                        </div>
-                    </t>
-                    <t t-else="">
-                        <div class="text-center text-muted p-2" style="font-size: 12px;">
-                            <i class="fa fa-hand-o-up mr-1"/> Select Brand A and Brand B above to launch side-by-side performance duel graph.
-                        </div>
-                    </t>
-                </div>
-
-                <!-- Multi-Aspect Performance Benchmarking Table with Mini Sparkline Graphs -->
-                <div class="table-responsive">
-                    <table class="brand-table">
-                        <thead>
-                            <tr>
-                                <th style="width: 16%;">Tire Brand</th>
-                                <th style="width: 24%;">Rubber Wear Index (KM / mm)</th>
-                                <th style="width: 20%;">Axle Fit Sparkbar (Steer/Drive/Trailer)</th>
-                                <th style="width: 16%;">Mileage Bullet Gauge</th>
-                                <th style="width: 12%;" class="text-right">Retreadability %</th>
-                                <th style="width: 12%;" class="text-center">Reliability Health</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            <t t-if="widget.filtered_brand_performance &amp;&amp; widget.filtered_brand_performance.length">
-                                <t t-foreach="widget.filtered_brand_performance" t-as="b">
-                                    <tr class="js_drilldown_brand" t-att-data-brand-id="b.brand_id" t-att-data-brand-name="b.brand" style="cursor: pointer;" title="Click to view tire inventory for this brand">
-                                        <td>
-                                            <span class="js_toggle_pattern_expand text-primary mr-1" t-att-data-brand-name="b.brand" title="Click to expand tread pattern breakdown">
-                                                <i class="fa fa-plus-square-o"/>
-                                            </span>
-                                            <strong><t t-esc="b.brand"/></strong>
-                                            <span class="badge badge-light ml-1"><t t-esc="b.count"/> Serials</span>
-                                        </td>
-
-                                        <!-- Aspect 1: Wear Index Progress Bar -->
-                                        <td>
-                                            <div style="display: flex; align-items: center; gap: 8px;">
-                                                <div style="flex: 1; height: 14px; background-color: #e9ecef; border-radius: 7px; overflow: hidden;">
-                                                    <div t-attf-style="width: #{b.bar_pct}%; height: 100%; background: linear-gradient(90deg, #1e62d0, #28a745); border-radius: 7px; transition: width 0.5s ease;"/>
-                                                </div>
-                                                <span style="font-weight: 800; font-size: 11px; min-width: 75px; text-align: right;">
-                                                    <t t-esc="b.km_per_mm ? b.km_per_mm.toLocaleString() : '0'"/> km/mm
-                                                </span>
-                                            </div>
-                                        </td>
-
-                                        <!-- Aspect 2: Axle Wear Distribution Sparkbar -->
-                                        <td>
-                                            <div style="display: flex; flex-direction: column; gap: 2px;">
-                                                <div style="display: flex; height: 10px; border-radius: 5px; overflow: hidden; background: #e9ecef;" title="Blue: Steer | Green: Drive | Yellow: Trailer">
-                                                    <div t-attf-style="width: #{b.steer_spark_pct}%; background-color: #1e62d0;" title="Steer: #{b.steer_km_per_mm} km/mm"/>
-                                                    <div t-attf-style="width: #{b.drive_spark_pct}%; background-color: #28a745;" title="Drive: #{b.drive_km_per_mm} km/mm"/>
-                                                    <div t-attf-style="width: #{b.trailer_spark_pct}%; background-color: #ffc107;" title="Trailer: #{b.trailer_km_per_mm} km/mm"/>
-                                                </div>
-                                                <div style="font-size: 10px; color: #6c757d; display: flex; justify-content: space-between;">
-                                                    <span>Optimal: <strong class="text-dark"><t t-esc="b.best_axle"/></strong></span>
-                                                </div>
-                                            </div>
-                                        </td>
-
-                                        <!-- Aspect 3: Lifespan Distance Bullet Gauge (Target 100k KM) -->
-                                        <td>
-                                            <div style="display: flex; flex-direction: column; gap: 2px;">
-                                                <div style="position: relative; height: 12px; background-color: #e9ecef; border-radius: 6px; overflow: hidden;">
-                                                    <div t-attf-style="width: #{b.target_km_pct}%; height: 100%; background-color: #17a2b8; border-radius: 6px;"/>
-                                                </div>
-                                                <div style="font-size: 10px; font-weight: 700; color: #495057;">
-                                                    Avg: <t t-esc="b.avg_km ? b.avg_km.toLocaleString() : '0'"/> km
-                                                </div>
-                                            </div>
-                                        </td>
-
-                                        <!-- Aspect 4: Retreadability % -->
-                                        <td class="text-right">
-                                            <div style="display: flex; flex-direction: column; align-items: flex-end; gap: 2px;">
-                                                <span class="font-weight-bold text-success" style="font-size: 12px;"><t t-esc="b.retread_pct"/>%</span>
-                                                <div style="width: 50px; height: 6px; background: #e9ecef; border-radius: 3px; overflow: hidden;">
-                                                    <div t-attf-style="width: #{b.retread_pct}%; height: 100%; background: #28a745;"/>
-                                                </div>
-                                            </div>
-                                        </td>
-
-                                        <!-- Aspect 5: Reliability & Status Sparkline -->
-                                        <td class="text-center">
-                                            <div style="display: flex; flex-direction: column; align-items: center; gap: 2px;">
-                                                <div style="width: 70px; display: flex; height: 6px; border-radius: 3px; overflow: hidden; background: #e9ecef;">
-                                                    <div t-attf-style="width: #{b.healthy_scrap_pct}%; background-color: #28a745;" title="Healthy Wear: #{b.healthy_scrap_pct}%"/>
-                                                    <div t-attf-style="width: #{b.failure_pct}%; background-color: #dc3545;" title="Premature Risk: #{b.failure_pct}%"/>
-                                                </div>
-                                                <span t-attf-class="badge #{b.badge_class}" style="font-size: 10px;">
-                                                    <t t-esc="b.badge_text"/>
-                                                </span>
-                                            </div>
-                                        </td>
-                                    </tr>
-
-                                    <!-- Nested Pattern Level Breakdown Sub-Table with Mini Graph Bars -->
-                                    <tr t-attf-id="pattern_row_#{b.brand.replace(' ', '_')}" class="d-none pattern-breakdown-row" style="background-color: #f8f9fa;">
-                                        <td colspan="6" class="p-2 pl-4">
-                                            <div style="font-size: 11px; font-weight: 700; color: #495057; margin-bottom: 6px;">
-                                                📦 Tread Pattern &amp; Model Level Sparklines for <t t-esc="b.brand"/>:
-                                            </div>
-                                            <div class="d-flex flex-wrap" style="gap: 10px;">
-                                                <t t-foreach="b.patterns" t-as="pat">
-                                                    <div class="p-2" style="background: #ffffff; border: 1px solid #dee2e6; border-radius: 6px; font-size: 11px; min-width: 220px;">
-                                                        <div class="d-flex justify-content-between font-weight-bold mb-1">
-                                                            <span><t t-esc="pat.pattern"/></span>
-                                                            <span class="text-primary"><t t-esc="pat.km_per_mm.toLocaleString()"/> km/mm</span>
-                                                        </div>
-                                                        <div style="height: 6px; background-color: #e9ecef; border-radius: 3px; overflow: hidden; margin-bottom: 4px;">
-                                                            <div t-attf-style="width: #{pat.pattern_bar_pct}%; height: 100%; background: linear-gradient(90deg, #1e62d0, #28a745); border-radius: 3px;"/>
-                                                        </div>
-                                                        <div class="d-flex justify-content-between text-muted" style="font-size: 10px;">
-                                                            <span><t t-esc="pat.count"/> units</span>
-                                                            <span>Avg <t t-esc="pat.avg_km.toLocaleString()"/> km</span>
-                                                        </div>
-                                                    </div>
-                                                </t>
-                                            </div>
-                                        </td>
-                                    </tr>
-                                </t>
-                            </t>
-                            <t t-else="">
-                                <tr>
-                                    <td colspan="6" class="text-center text-muted p-3">
-                                        No brand performance records matching active panel filter criteria.
-                                    </td>
-                                </tr>
-                            </t>
-                        </tbody>
-                    </table>
                 </div>
             </div>
         </div>
