@@ -67,26 +67,26 @@
                             <span class="badge badge-light text-muted" style="font-size: 10px;">Operational Status</span>
                         </div>
                         <div class="row text-center align-items-center mt-2">
-                            <div class="col-4 border-right pr-1 pl-1">
+                            <div class="col-4 border-right pr-1 pl-1" title="Installed Tires&#10;Calculation: Total count of active tire mount operations in system.&#10;Formula: COUNT(dh.tire.usage where usage_type = 'mount' OR install_date != False)">
                                 <div class="text-success font-weight-bold" style="font-size: 17px;">
                                     <i class="fa fa-plus-circle mr-1" style="font-size: 13px;"/>
                                     <t t-esc="widget.kpis.installed_tires or 0"/>
                                 </div>
-                                <div class="text-muted" style="font-size: 10px; font-weight: 600;">Installed</div>
+                                <div class="text-muted" style="font-size: 10px; font-weight: 600;">Installed <i class="fa fa-info-circle text-muted" title="Calculation: Count of active tire mount operations.&#10;Formula: COUNT(usage_type = 'mount')"/></div>
                             </div>
-                            <div class="col-4 border-right pr-1 pl-1">
+                            <div class="col-4 border-right pr-1 pl-1" title="Rotated Tires&#10;Calculation: Total count of tire position swap events on same vehicle.&#10;Formula: COUNT(dh.tire.usage where is_rotation = True OR action_type = 'rotation')">
                                 <div class="text-info font-weight-bold" style="font-size: 17px;">
                                     <i class="fa fa-refresh mr-1" style="font-size: 13px;"/>
                                     <t t-esc="widget.kpis.rotated_tires or 0"/>
                                 </div>
-                                <div class="text-muted" style="font-size: 10px; font-weight: 600;">Rotated</div>
+                                <div class="text-muted" style="font-size: 10px; font-weight: 600;">Rotated <i class="fa fa-info-circle text-muted" title="Calculation: Count of position swaps on same vehicle.&#10;Formula: COUNT(is_rotation = True)"/></div>
                             </div>
-                            <div class="col-4 pr-1 pl-1">
+                            <div class="col-4 pr-1 pl-1" title="Removed Tires&#10;Calculation: Total count of tire dismounts, retreads, or scrap operations.&#10;Formula: COUNT(dh.tire.usage where removal_date != False OR usage_type IN ('scrap', 'retread'))">
                                 <div class="text-danger font-weight-bold" style="font-size: 17px;">
                                     <i class="fa fa-minus-circle mr-1" style="font-size: 13px;"/>
                                     <t t-esc="widget.kpis.removed_tires or 0"/>
                                 </div>
-                                <div class="text-muted" style="font-size: 10px; font-weight: 600;">Removed</div>
+                                <div class="text-muted" style="font-size: 10px; font-weight: 600;">Removed <i class="fa fa-info-circle text-muted" title="Calculation: Count of dismounted/scrapped tires.&#10;Formula: COUNT(removal_date != False)"/></div>
                             </div>
                         </div>
                     </div>
@@ -372,23 +372,23 @@
 
                 <!-- Rotation Metric Cards -->
                 <div class="coupling-metrics-grid mb-3" style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 14px;">
-                    <div class="coupling-card text-center p-3" style="background: #f8f9fa; border-radius: 8px; border-left: 4px solid #1e62d0;">
-                        <div style="font-size: 11px; font-weight: 700; color: #6c757d; text-transform: uppercase;">Vehicles Analyzed</div>
+                    <div class="coupling-card text-center p-3" style="background: #f8f9fa; border-radius: 8px; border-left: 4px solid #1e62d0;" title="Vehicles Analyzed&#10;Calculation: Total active fleet vehicles evaluated for tire wear and position variance.&#10;Formula: COUNT(Active Vehicles with >= 1 Mounted Tire)">
+                        <div style="font-size: 11px; font-weight: 700; color: #6c757d; text-transform: uppercase;">Vehicles Analyzed <i class="fa fa-info-circle text-muted" title="Calculation: Total active fleet vehicles evaluated.&#10;Formula: COUNT(Active Vehicles with Mounted Tire)"/></div>
                         <div style="font-size: 20px; font-weight: 800; color: #1e62d0;"><t t-esc="widget.rotation_analytics &amp;&amp; widget.rotation_analytics.total_analyzed ? widget.rotation_analytics.total_analyzed : 0"/></div>
                         <div style="font-size: 11px; color: #6c757d; margin-top: 2px;">Total Active Fleet Evaluated</div>
                     </div>
-                    <div class="coupling-card text-center p-3" style="background: #fff3cd; border-radius: 8px; border-left: 4px solid #ffc107;">
-                        <div style="font-size: 11px; font-weight: 700; color: #856404; text-transform: uppercase;">Rotation Needed</div>
+                    <div class="coupling-card text-center p-3" style="background: #fff3cd; border-radius: 8px; border-left: 4px solid #ffc107;" title="Rotation Needed&#10;Calculation: Count of vehicles where tread wear percentage variance across tires is >= 15%.&#10;Formula: COUNT(Vehicles where (Max Wear % - Min Wear %) >= 15%)">
+                        <div style="font-size: 11px; font-weight: 700; color: #856404; text-transform: uppercase;">Rotation Needed <i class="fa fa-info-circle text-muted" title="Calculation: Vehicles with wear variance >= 15%.&#10;Formula: COUNT((Max Wear % - Min Wear %) >= 15%)"/></div>
                         <div style="font-size: 20px; font-weight: 800; color: #d39e00;"><t t-esc="widget.rotation_analytics &amp;&amp; widget.rotation_analytics.total_needing_rotation ? widget.rotation_analytics.total_needing_rotation : 0"/></div>
                         <div style="font-size: 11px; color: #856404; margin-top: 2px;">Wear Variance &gt;= 15%</div>
                     </div>
-                    <div class="coupling-card text-center p-3" style="background: #f8d7da; border-radius: 8px; border-left: 4px solid #dc3545;">
-                        <div style="font-size: 11px; font-weight: 700; color: #721c24; text-transform: uppercase;">High Priority</div>
+                    <div class="coupling-card text-center p-3" style="background: #f8d7da; border-radius: 8px; border-left: 4px solid #dc3545;" title="High Priority&#10;Calculation: Count of vehicles with severe tread wear variance (>= 25%) requiring urgent rotation.&#10;Formula: COUNT(Vehicles where (Max Wear % - Min Wear %) >= 25%)">
+                        <div style="font-size: 11px; font-weight: 700; color: #721c24; text-transform: uppercase;">High Priority <i class="fa fa-info-circle text-muted" title="Calculation: Vehicles with wear variance >= 25%.&#10;Formula: COUNT((Max Wear % - Min Wear %) >= 25%)"/></div>
                         <div style="font-size: 20px; font-weight: 800; color: #dc3545;"><t t-esc="widget.rotation_analytics &amp;&amp; widget.rotation_analytics.high_priority_count ? widget.rotation_analytics.high_priority_count : 0"/></div>
                         <div style="font-size: 11px; color: #721c24; margin-top: 2px;">Wear Variance &gt;= 25%</div>
                     </div>
-                    <div class="coupling-card text-center p-3" style="background: #e6f4ea; border-radius: 8px; border-left: 4px solid #28a745;">
-                        <div style="font-size: 11px; font-weight: 700; color: #1e7e34; text-transform: uppercase;">Potential Life Extension</div>
+                    <div class="coupling-card text-center p-3" style="background: #e6f4ea; border-radius: 8px; border-left: 4px solid #28a745;" title="Potential Life Extension&#10;Calculation: Cumulative distance gained fleet-wide by equalizing tire wear across positions.&#10;Formula: SUM(Wear Variance % * 100 KM per tire for vehicles needing rotation)">
+                        <div style="font-size: 11px; font-weight: 700; color: #1e7e34; text-transform: uppercase;">Potential Life Extension <i class="fa fa-info-circle text-muted" title="Calculation: Fleet distance gained by balancing tire wear.&#10;Formula: SUM(Wear Variance % * 100 KM per tire)"/></div>
                         <div style="font-size: 20px; font-weight: 800; color: #28a745;">+<t t-esc="widget.rotation_analytics &amp;&amp; widget.rotation_analytics.total_est_benefit_km ? widget.rotation_analytics.total_est_benefit_km : 0"/> KM</div>
                         <div style="font-size: 11px; color: #1e7e34; margin-top: 2px;">Est. Distance Saved Fleet-wide</div>
                     </div>
@@ -539,19 +539,19 @@
 
                 <!-- Coupling Metric Badges -->
                 <div class="coupling-metrics-grid mb-3" style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 14px;">
-                    <div class="coupling-card text-center p-3" style="background: #eef4ff; border-radius: 8px; border-left: 4px solid #1e62d0;">
-                        <div style="font-size: 11px; font-weight: 700; color: #6c757d; text-transform: uppercase;">Head Units (Prime Movers)</div>
+                    <div class="coupling-card text-center p-3" style="background: #eef4ff; border-radius: 8px; border-left: 4px solid #1e62d0;" title="Head Units (Prime Movers)&#10;Calculation: Total prime mover / tractor vehicles in active fleet.&#10;Formula: COUNT(dh.vehicle where is_head = True)">
+                        <div style="font-size: 11px; font-weight: 700; color: #6c757d; text-transform: uppercase;">Head Units (Prime Movers) <i class="fa fa-info-circle text-muted" title="Calculation: Prime mover head units count.&#10;Formula: COUNT(is_head = True)"/></div>
                         <div style="font-size: 22px; font-weight: 800; color: #1e62d0;"><t t-esc="widget.trailer_coupling_summary.total_heads"/></div>
                     </div>
-                    <div class="coupling-card text-center p-3" style="background: #e8f8ec; border-radius: 8px; border-left: 4px solid #28a745;">
-                        <div style="font-size: 11px; font-weight: 700; color: #6c757d; text-transform: uppercase;">Connected Trailers</div>
+                    <div class="coupling-card text-center p-3" style="background: #e8f8ec; border-radius: 8px; border-left: 4px solid #28a745;" title="Connected Trailers&#10;Calculation: Trailers actively coupled to prime mover head units.&#10;Formula: (Connected Trailers / Total Trailers) * 100%">
+                        <div style="font-size: 11px; font-weight: 700; color: #6c757d; text-transform: uppercase;">Connected Trailers <i class="fa fa-info-circle text-muted" title="Calculation: Coupled trailer ratio.&#10;Formula: (Connected / Total) * 100%"/></div>
                         <div style="font-size: 22px; font-weight: 800; color: #28a745;">
                             <t t-esc="widget.trailer_coupling_summary.connected_trailers"/> / <t t-esc="widget.trailer_coupling_summary.total_trailers"/>
                             <small style="font-size: 12px; font-weight: 600;">(<t t-esc="widget.trailer_coupling_summary.coupling_pct"/>%)</small>
                         </div>
                     </div>
-                    <div class="coupling-card text-center p-3" style="background: #fff8e6; border-radius: 8px; border-left: 4px solid #ffc107;">
-                        <div style="font-size: 11px; font-weight: 700; color: #6c757d; text-transform: uppercase;">Uncoupled Idle Trailers</div>
+                    <div class="coupling-card text-center p-3" style="background: #fff8e6; border-radius: 8px; border-left: 4px solid #ffc107;" title="Uncoupled Idle Trailers&#10;Calculation: Count of trailers uncoupled or parked at depots.&#10;Formula: Total Trailers - Connected Trailers">
+                        <div style="font-size: 11px; font-weight: 700; color: #6c757d; text-transform: uppercase;">Uncoupled Idle Trailers <i class="fa fa-info-circle text-muted" title="Calculation: Idle uncoupled trailers count.&#10;Formula: Total Trailers - Connected Trailers"/></div>
                         <div style="font-size: 22px; font-weight: 800; color: #d97706;"><t t-esc="widget.trailer_coupling_summary.uncoupled_trailers"/></div>
                     </div>
                 </div>
@@ -596,23 +596,23 @@
 
                 <!-- 4 Financial Metric Badges -->
                 <div class="financial-metrics-grid mb-3" style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 14px;">
-                    <div class="coupling-card text-center p-3" style="background: #eef4ff; border-radius: 8px; border-left: 4px solid #1e62d0;">
-                        <div style="font-size: 11px; font-weight: 700; color: #6c757d; text-transform: uppercase;">Total Projected Billing</div>
+                    <div class="coupling-card text-center p-3" style="background: #eef4ff; border-radius: 8px; border-left: 4px solid #1e62d0;" title="Total Projected Billing&#10;Calculation: Combined CPK revenue from actual distance plus floor shortfall adjustments.&#10;Formula: Base Distance Revenue + Shortfall Recovery Value">
+                        <div style="font-size: 11px; font-weight: 700; color: #6c757d; text-transform: uppercase;">Total Projected Billing <i class="fa fa-info-circle text-muted" title="Calculation: Actual CPK Revenue + Shortfall Recovery.&#10;Formula: Base Revenue + Shortfall Recovery"/></div>
                         <div style="font-size: 20px; font-weight: 800; color: #1e62d0;"><t t-esc="widget.cpk_billing_summary.projected_billing_str"/></div>
                         <div style="font-size: 11px; color: #6c757d; margin-top: 2px;">Nilai Tagihan (Aktual + Selisih)</div>
                     </div>
-                    <div class="coupling-card text-center p-3" style="background: #e8f8ec; border-radius: 8px; border-left: 4px solid #28a745;">
-                        <div style="font-size: 11px; font-weight: 700; color: #6c757d; text-transform: uppercase;">CPK Contract Hubs</div>
+                    <div class="coupling-card text-center p-3" style="background: #e8f8ec; border-radius: 8px; border-left: 4px solid #28a745;" title="CPK Contract Hubs&#10;Calculation: Count of operating units operating under active CPK billing contracts.&#10;Formula: COUNT(operating.unit where is_cpk_billing = True)">
+                        <div style="font-size: 11px; font-weight: 700; color: #6c757d; text-transform: uppercase;">CPK Contract Hubs <i class="fa fa-info-circle text-muted" title="Calculation: Active CPK billing operating hubs.&#10;Formula: COUNT(is_cpk_billing = True)"/></div>
                         <div style="font-size: 20px; font-weight: 800; color: #28a745;"><t t-esc="widget.cpk_billing_summary.cpk_hubs"/> Operating Units</div>
                         <div style="font-size: 11px; color: #6c757d; margin-top: 2px;">Lokasi Billing Operating Unit</div>
                     </div>
-                    <div class="coupling-card text-center p-3" style="background: #fffdf2; border-radius: 8px; border-left: 4px solid #ffc107;">
-                        <div style="font-size: 11px; font-weight: 700; color: #6c757d; text-transform: uppercase;">Shortfall Vehicles (&lt; 2.5k KM)</div>
+                    <div class="coupling-card text-center p-3" style="background: #fffdf2; border-radius: 8px; border-left: 4px solid #ffc107;" title="Shortfall Vehicles (< 2.5k KM)&#10;Calculation: Count of vehicles that did not achieve the contract minimum monthly distance target (2,500 KM).&#10;Formula: COUNT(Vehicles where Monthly KM < 2,500 KM)">
+                        <div style="font-size: 11px; font-weight: 700; color: #6c757d; text-transform: uppercase;">Shortfall Vehicles (&lt; 2.5k KM) <i class="fa fa-info-circle text-muted" title="Calculation: Vehicles below 2.5k KM target.&#10;Formula: COUNT(Monthly KM < 2,500 KM)"/></div>
                         <div style="font-size: 20px; font-weight: 800; color: #d97706;"><t t-esc="widget.cpk_billing_summary.deficit_vehicle_count"/> Vehicles</div>
                         <div style="font-size: 11px; color: #6c757d; margin-top: 2px;">Kendaraan di Bawah Minimum KM</div>
                     </div>
-                    <div class="coupling-card text-center p-3" style="background: #fdf2f2; border-radius: 8px; border-left: 4px solid #dc3545;">
-                        <div style="font-size: 11px; font-weight: 700; color: #6c757d; text-transform: uppercase;">Shortfall Recovery Value</div>
+                    <div class="coupling-card text-center p-3" style="background: #fdf2f2; border-radius: 8px; border-left: 4px solid #dc3545;" title="Shortfall Recovery Value&#10;Calculation: Adjustment revenue billed for vehicles below minimum distance floor.&#10;Formula: SUM((2,500 KM - Actual KM) * Mounted Tires * CPK Rate)">
+                        <div style="font-size: 11px; font-weight: 700; color: #6c757d; text-transform: uppercase;">Shortfall Recovery Value <i class="fa fa-info-circle text-muted" title="Calculation: Deficit adjustment billing value.&#10;Formula: SUM((2,500 - KM) * Tires * CPK Rate)"/></div>
                         <div style="font-size: 20px; font-weight: 800; color: #dc3545;"><t t-esc="widget.cpk_billing_summary.adjustment_str"/></div>
                         <div style="font-size: 11px; color: #6c757d; margin-top: 2px;">Nilai Tagihan Selisih Minimum KM</div>
                     </div>
@@ -685,23 +685,23 @@
 
                 <!-- 4 Financial Asset Badges -->
                 <div class="financial-metrics-grid mb-3" style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 14px;">
-                    <div class="coupling-card text-center p-3" style="background: #eef4ff; border-radius: 8px; border-left: 4px solid #1e62d0;">
-                        <div style="font-size: 11px; font-weight: 700; color: #6c757d; text-transform: uppercase;">Gross Asset Value (Gross)</div>
+                    <div class="coupling-card text-center p-3" style="background: #eef4ff; border-radius: 8px; border-left: 4px solid #1e62d0;" title="Gross Asset Value (Gross)&#10;Calculation: Sum of original purchase prices / acquisition values of all fleet tires.&#10;Formula: SUM(Tire Purchase Price or Original Gross Asset Value)">
+                        <div style="font-size: 11px; font-weight: 700; color: #6c757d; text-transform: uppercase;">Gross Asset Value (Gross) <i class="fa fa-info-circle text-muted" title="Calculation: Original fleet tire purchase cost.&#10;Formula: SUM(Tire Purchase Price)"/></div>
                         <div style="font-size: 20px; font-weight: 800; color: #1e62d0;"><t t-esc="widget.asset_valuation_summary &amp;&amp; widget.asset_valuation_summary.total_gross_str ? widget.asset_valuation_summary.total_gross_str : 'Rp 0'"/></div>
                         <div style="font-size: 11px; color: #6c757d; margin-top: 2px;">Total Harga Perolehan Ban</div>
                     </div>
-                    <div class="coupling-card text-center p-3" style="background: #fffdf2; border-radius: 8px; border-left: 4px solid #fd7e14;">
-                        <div style="font-size: 11px; font-weight: 700; color: #6c757d; text-transform: uppercase;">Accumulated Depreciation</div>
+                    <div class="coupling-card text-center p-3" style="background: #fffdf2; border-radius: 8px; border-left: 4px solid #fd7e14;" title="Accumulated Depreciation&#10;Calculation: Total financial depreciation based on physical tread depth consumption (RTD loss).&#10;Formula: SUM(Gross Value * (Tread Consumed mm / Original Tread Depth mm))">
+                        <div style="font-size: 11px; font-weight: 700; color: #6c757d; text-transform: uppercase;">Accumulated Depreciation <i class="fa fa-info-circle text-muted" title="Calculation: Depreciation based on tread wear loss.&#10;Formula: SUM(Gross * Tread Loss / Original RTD)"/></div>
                         <div style="font-size: 20px; font-weight: 800; color: #d97706;"><t t-esc="widget.asset_valuation_summary &amp;&amp; widget.asset_valuation_summary.total_depr_str ? widget.asset_valuation_summary.total_depr_str : 'Rp 0'"/></div>
                         <div style="font-size: 11px; color: #6c757d; margin-top: 2px;">Akumulasi Penyusutan Aus Ban</div>
                     </div>
-                    <div class="coupling-card text-center p-3" style="background: #e8f8ec; border-radius: 8px; border-left: 4px solid #28a745;">
-                        <div style="font-size: 11px; font-weight: 700; color: #6c757d; text-transform: uppercase;">Net Asset Value (NBV)</div>
+                    <div class="coupling-card text-center p-3" style="background: #e8f8ec; border-radius: 8px; border-left: 4px solid #28a745;" title="Net Asset Value (NBV)&#10;Calculation: Remaining net book value of active tire capital assets.&#10;Formula: Gross Asset Value - Accumulated Depreciation">
+                        <div style="font-size: 11px; font-weight: 700; color: #6c757d; text-transform: uppercase;">Net Asset Value (NBV) <i class="fa fa-info-circle text-muted" title="Calculation: Remaining net book value.&#10;Formula: Gross Asset Value - Accumulated Depreciation"/></div>
                         <div style="font-size: 20px; font-weight: 800; color: #28a745;"><t t-esc="widget.asset_valuation_summary &amp;&amp; widget.asset_valuation_summary.total_net_str ? widget.asset_valuation_summary.total_net_str : 'Rp 0'"/></div>
                         <div style="font-size: 11px; color: #6c757d; margin-top: 2px;">Nilai Buku Bersih Aset Ban</div>
                     </div>
-                    <div class="coupling-card text-center p-3" style="background: #f4f0ff; border-radius: 8px; border-left: 4px solid #6f42c1;">
-                        <div style="font-size: 11px; font-weight: 700; color: #6c757d; text-transform: uppercase;">Asset Health Ratio</div>
+                    <div class="coupling-card text-center p-3" style="background: #f4f0ff; border-radius: 8px; border-left: 4px solid #6f42c1;" title="Asset Health Ratio&#10;Calculation: Percentage of initial fleet tire asset capital value remaining unconsumed.&#10;Formula: (Total Net Asset Value / Total Gross Asset Value) * 100%">
+                        <div style="font-size: 11px; font-weight: 700; color: #6c757d; text-transform: uppercase;">Asset Health Ratio <i class="fa fa-info-circle text-muted" title="Calculation: Remaining unamortized asset ratio.&#10;Formula: (Net Asset Value / Gross Asset Value) * 100%"/></div>
                         <div style="font-size: 20px; font-weight: 800; color: #6f42c1;"><t t-esc="widget.asset_valuation_summary &amp;&amp; widget.asset_valuation_summary.retention_pct ? widget.asset_valuation_summary.retention_pct : 0"/>%</div>
                         <div style="font-size: 11px; color: #6c757d; margin-top: 2px;">Sisa Nilai Efektif Aset (%)</div>
                     </div>
