@@ -448,6 +448,78 @@ class DhTmsDashboard(models.TransientModel):
             rotated_tires = sum(t.rotation_count for t in tires)
             removed_tires = len(tires.filtered(lambda t: t.state in ('unmounted', 'retread', 'scrapped')))
 
+        # 7.5 Compute Tire Rotation Analytics & Wear Variance Distribution
+        high_priority_rotations = 0
+        medium_priority_rotations = 0
+        balanced_wear_vehicles = 0
+        total_est_benefit_km = 0
+        hub_rotation_map = {}
+
+        if 'dh.tire.usage' in self.env:
+            for v in vehicles:
+                current_usages = self.env['dh.tire.usage'].search([
+                    ('vehicle_id', '=', v.id),
+                    ('removal_date', '=', False)
+                ])
+                wear_values = [u.wear_percentage for u in current_usages if u.wear_percentage is not False]
+                if len(wear_values) >= 2:
+                    max_w = max(wear_values)
+                    min_w = min(wear_values)
+                    wear_var = max_w - min_w
+                    if wear_var >= 25.0:
+                        high_priority_rotations += 1
+                        total_est_benefit_km += int(wear_var * 100)
+                    elif wear_var >= 15.0:
+                        medium_priority_rotations += 1
+                        total_est_benefit_km += int(wear_var * 100)
+                    else:
+                        balanced_wear_vehicles += 1
+                elif len(wear_values) == 1:
+                    balanced_wear_vehicles += 1
+
+            if 'operating.unit' in self.env:
+                ou_records = self.env['operating.unit'].search([('id', '=', int(unit_id))] if unit_id else [])
+                for ou in ou_records:
+                    hub_rotation_map[ou.name] = {'rotations': 0, 'benefit_km': 0}
+
+                all_rotation_usages = self.env['dh.tire.usage'].search([
+                    '|', ('is_rotation', '=', True), ('action_type', '=', 'rotation')
+                ])
+                if unit_id:
+                    all_rotation_usages = all_rotation_usages.filtered(lambda u: u.vehicle_id and u.vehicle_id.location_id.id == int(unit_id))
+
+                for u in all_rotation_usages:
+                    h_name = u.vehicle_id.location_id.name if u.vehicle_id and u.vehicle_id.location_id else 'Depot Stock'
+                    if h_name not in hub_rotation_map:
+                        hub_rotation_map[h_name] = {'rotations': 0, 'benefit_km': 0}
+                    hub_rotation_map[h_name]['rotations'] += 1
+
+                for v in vehicles:
+                    h_name = v.location_id.name if v.location_id else 'Depot Stock'
+                    current_usages = self.env['dh.tire.usage'].search([
+                        ('vehicle_id', '=', v.id),
+                        ('removal_date', '=', False)
+                    ])
+                    wear_values = [u.wear_percentage for u in current_usages if u.wear_percentage is not False]
+                    if len(wear_values) >= 2:
+                        wear_var = max(wear_values) - min(wear_values)
+                        if wear_var >= 15.0:
+                            if h_name not in hub_rotation_map:
+                                hub_rotation_map[h_name] = {'rotations': 0, 'benefit_km': 0}
+                            hub_rotation_map[h_name]['benefit_km'] += int(wear_var * 100)
+
+        hub_rotation_chart_data = []
+        for name, d in sorted(hub_rotation_map.items()):
+            if d['rotations'] > 0 or d['benefit_km'] > 0:
+                hub_rotation_chart_data.append({
+                    'name': name,
+                    'rotations': d['rotations'],
+                    'benefit_km': d['benefit_km'],
+                })
+
+        total_vehicles_analyzed = len(vehicles)
+        total_needing_rotation = high_priority_rotations + medium_priority_rotations
+
         # 8. Tire Asset Valuation & Financial Depreciation Query
         asset_gross_total = 0.0
         asset_depr_total = 0.0
@@ -547,6 +619,15 @@ class DhTmsDashboard(models.TransientModel):
                 'rotated_tires': rotated_tires,
                 'removed_tires': removed_tires,
                 'total_inspections': len(monitoring_list),
+            },
+            'rotation_analytics': {
+                'high_priority_count': high_priority_rotations,
+                'medium_priority_count': medium_priority_rotations,
+                'balanced_count': balanced_wear_vehicles,
+                'total_analyzed': total_vehicles_analyzed,
+                'total_needing_rotation': total_needing_rotation,
+                'total_est_benefit_km': total_est_benefit_km,
+                'hub_rotation_chart_data': hub_rotation_chart_data,
             },
             'psi_distribution': {
                 'normal_count': normal_psi_count,

@@ -364,6 +364,87 @@
                 </div>
             </div>
 
+            <!-- Tire Rotation Telemetry & Wear Variance Analytics Panel -->
+            <div class="dashboard-panel mb-4">
+                <div class="panel-header">
+                    <h3><i class="fa fa-retweet mr-2"/>Tire Rotation Telemetry &amp; Fleet Wear Variance Analytics</h3>
+                </div>
+
+                <!-- Rotation Metric Cards -->
+                <div class="coupling-metrics-grid mb-3" style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 14px;">
+                    <div class="coupling-card text-center p-3" style="background: #f8f9fa; border-radius: 8px; border-left: 4px solid #1e62d0;">
+                        <div style="font-size: 11px; font-weight: 700; color: #6c757d; text-transform: uppercase;">Vehicles Analyzed</div>
+                        <div style="font-size: 20px; font-weight: 800; color: #1e62d0;"><t t-esc="widget.rotation_analytics &amp;&amp; widget.rotation_analytics.total_analyzed ? widget.rotation_analytics.total_analyzed : 0"/></div>
+                        <div style="font-size: 11px; color: #6c757d; margin-top: 2px;">Total Active Fleet Evaluated</div>
+                    </div>
+                    <div class="coupling-card text-center p-3" style="background: #fff3cd; border-radius: 8px; border-left: 4px solid #ffc107;">
+                        <div style="font-size: 11px; font-weight: 700; color: #856404; text-transform: uppercase;">Rotation Needed</div>
+                        <div style="font-size: 20px; font-weight: 800; color: #d39e00;"><t t-esc="widget.rotation_analytics &amp;&amp; widget.rotation_analytics.total_needing_rotation ? widget.rotation_analytics.total_needing_rotation : 0"/></div>
+                        <div style="font-size: 11px; color: #856404; margin-top: 2px;">Wear Variance &gt;= 15%</div>
+                    </div>
+                    <div class="coupling-card text-center p-3" style="background: #f8d7da; border-radius: 8px; border-left: 4px solid #dc3545;">
+                        <div style="font-size: 11px; font-weight: 700; color: #721c24; text-transform: uppercase;">High Priority</div>
+                        <div style="font-size: 20px; font-weight: 800; color: #dc3545;"><t t-esc="widget.rotation_analytics &amp;&amp; widget.rotation_analytics.high_priority_count ? widget.rotation_analytics.high_priority_count : 0"/></div>
+                        <div style="font-size: 11px; color: #721c24; margin-top: 2px;">Wear Variance &gt;= 25%</div>
+                    </div>
+                    <div class="coupling-card text-center p-3" style="background: #e6f4ea; border-radius: 8px; border-left: 4px solid #28a745;">
+                        <div style="font-size: 11px; font-weight: 700; color: #1e7e34; text-transform: uppercase;">Potential Life Extension</div>
+                        <div style="font-size: 20px; font-weight: 800; color: #28a745;">+<t t-esc="widget.rotation_analytics &amp;&amp; widget.rotation_analytics.total_est_benefit_km ? widget.rotation_analytics.total_est_benefit_km : 0"/> KM</div>
+                        <div style="font-size: 11px; color: #1e7e34; margin-top: 2px;">Est. Distance Saved Fleet-wide</div>
+                    </div>
+                </div>
+
+                <!-- 2-Column Rotation Charts Section -->
+                <div class="row mt-3">
+                    <!-- Left Chart: Rotation Urgency Priority Distribution (Doughnut) -->
+                    <div class="col-md-5 col-12 mb-3 mb-md-0">
+                        <div class="p-3" style="background: #ffffff; border: 1px solid #e9ecef; border-radius: 8px;">
+                            <div class="d-flex justify-content-between align-items-center mb-2 pb-1 border-bottom">
+                                <strong style="font-size: 12px; font-weight: 700; color: #1e62d0;">
+                                    <i class="fa fa-pie-chart mr-1"/> Fleet Rotation Urgency Distribution
+                                </strong>
+                                <span class="badge badge-light text-muted" style="font-size: 10px;">Wear Variance Priority</span>
+                            </div>
+                            <div class="d-flex align-items-center mb-2 flex-wrap" style="gap: 10px; font-size: 11px; font-weight: 600;">
+                                <span style="color: #dc3545;"><i class="fa fa-circle mr-1" style="color: #dc3545;"/> High Priority (&gt;=25%)</span>
+                                <span style="color: #ffc107;"><i class="fa fa-circle mr-1" style="color: #ffc107;"/> Medium Priority (15-24%)</span>
+                                <span style="color: #28a745;"><i class="fa fa-circle mr-1" style="color: #28a745;"/> Balanced (&lt;15%)</span>
+                            </div>
+                            <div style="position: relative; width: 100%; height: 190px;">
+                                <canvas id="js_rotation_urgency_canvas" style="width: 100%; height: 100%;"></canvas>
+                            </div>
+                            <div class="chart-description-banner mt-2 p-2" style="background: #f0f4fc; border-left: 4px solid #1e62d0; border-radius: 4px; font-size: 11px; color: #2c3e50;">
+                                <i class="fa fa-info-circle text-primary mr-1"/>
+                                <strong>Prioritas Rotasi Ban Armada:</strong> Mengelompokkan unit kendaraan berdasarkan tingkat ketimpangan keausan alur ban (Wear Variance) untuk mencegah pembatasan usia pakai ban steer dan drive.
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Right Chart: Rotation Activity & Benefit by Operating Unit (Bar) -->
+                    <div class="col-md-7 col-12">
+                        <div class="p-3" style="background: #ffffff; border: 1px solid #e9ecef; border-radius: 8px;">
+                            <div class="d-flex justify-content-between align-items-center mb-2 pb-1 border-bottom">
+                                <strong style="font-size: 12px; font-weight: 700; color: #1e62d0;">
+                                    <i class="fa fa-bar-chart mr-1"/> Rotation Executed &amp; Life Extension per Operating Hub
+                                </strong>
+                                <span class="badge badge-light text-muted" style="font-size: 10px;">Hub Performance</span>
+                            </div>
+                            <div class="d-flex align-items-center mb-2" style="gap: 12px; font-size: 11px; font-weight: 600;">
+                                <span style="color: #1e62d0;"><i class="fa fa-square mr-1" style="color: #1e62d0;"/> Total Rotations Executed</span>
+                                <span style="color: #28a745;"><i class="fa fa-square mr-1" style="color: #28a745;"/> Est. Life Extension (+100 KM)</span>
+                            </div>
+                            <div style="position: relative; width: 100%; height: 190px;">
+                                <canvas id="js_rotation_hub_canvas" style="width: 100%; height: 100%;"></canvas>
+                            </div>
+                            <div class="chart-description-banner mt-2 p-2" style="background: #f0f4fc; border-left: 4px solid #1e62d0; border-radius: 4px; font-size: 11px; color: #2c3e50;">
+                                <i class="fa fa-info-circle text-primary mr-1"/>
+                                <strong>Rotasi per Operating Hub:</strong> Menampilkan jumlah rotasi ban yang sudah dieksekusi dan potensi tambahan jarak tempuh (KM) yang diperoleh dari hasil penyeimbangan alur ban.
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
             <!-- Secondary Widgets Panel (PSI Telemetry, Rotation, Forecaster) -->
             <div class="dashboard-panel mb-4">
                 <div class="row">
@@ -676,6 +757,7 @@
                     </div>
                 </div>
             </div>
+
         </div>
     </t>
 </templates>

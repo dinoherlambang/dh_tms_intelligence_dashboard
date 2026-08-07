@@ -162,6 +162,7 @@ odoo.define('dh_tms_intelligence_dashboard.Dashboard', function (require) {
             this._renderLineChart();
             this._renderCPKBillingCharts();
             this._renderAssetValuationCharts();
+            this._renderRotationCharts();
         },
 
         renderElement: function () {
@@ -169,6 +170,7 @@ odoo.define('dh_tms_intelligence_dashboard.Dashboard', function (require) {
             this._renderLineChart();
             this._renderCPKBillingCharts();
             this._renderAssetValuationCharts();
+            this._renderRotationCharts();
             this._restoreCheckboxStates();
         },
 
@@ -985,6 +987,86 @@ odoo.define('dh_tms_intelligence_dashboard.Dashboard', function (require) {
                 target: 'new',
                 context: ctx,
             });
+        },
+
+        _renderRotationCharts: function () {
+            var self = this;
+            var summary = (self.dashboard_data && self.dashboard_data.rotation_analytics) || {};
+            var hubData = summary.hub_rotation_chart_data || [];
+            var highCount = summary.high_priority_count || 0;
+            var medCount = summary.medium_priority_count || 0;
+            var balancedCount = summary.balanced_count || 0;
+
+            // 1. Left Doughnut Chart: Fleet Rotation Urgency Distribution
+            var canvas1 = this.$('#js_rotation_urgency_canvas')[0];
+            if (canvas1) {
+                var ctx1 = canvas1.getContext('2d');
+                var values1 = [highCount, medCount, balancedCount];
+
+                if (window.Chart) {
+                    if (self.rotation_urgency_chart) self.rotation_urgency_chart.destroy();
+                    self.rotation_urgency_chart = new window.Chart(ctx1, {
+                        type: 'doughnut',
+                        data: {
+                            labels: ['High Priority (>=25%)', 'Medium Priority (15-24%)', 'Balanced (<15%)'],
+                            datasets: [{
+                                data: values1,
+                                backgroundColor: ['#dc3545', '#ffc107', '#28a745']
+                            }]
+                        },
+                        options: {
+                            responsive: true,
+                            maintainAspectRatio: false,
+                            legend: { position: 'bottom' }
+                        }
+                    });
+                }
+            }
+
+            // 2. Right Bar Chart: Rotation Executed & Benefit per Operating Hub
+            var canvas2 = this.$('#js_rotation_hub_canvas')[0];
+            if (canvas2) {
+                var ctx2 = canvas2.getContext('2d');
+                var labels2 = hubData.map(function (h) { return h.name; });
+                var rotationsData = hubData.map(function (h) { return h.rotations; });
+                var benefitData = hubData.map(function (h) { return h.benefit_km; });
+
+                if (!labels2.length) {
+                    labels2 = ['No Active Rotation Data'];
+                    rotationsData = [0];
+                    benefitData = [0];
+                }
+
+                if (window.Chart) {
+                    if (self.rotation_hub_chart) self.rotation_hub_chart.destroy();
+                    self.rotation_hub_chart = new window.Chart(ctx2, {
+                        type: 'bar',
+                        data: {
+                            labels: labels2,
+                            datasets: [
+                                {
+                                    label: 'Rotations Executed',
+                                    data: rotationsData,
+                                    backgroundColor: '#1e62d0',
+                                },
+                                {
+                                    label: 'Est. Life Extension (KM)',
+                                    data: benefitData,
+                                    backgroundColor: '#28a745',
+                                }
+                            ]
+                        },
+                        options: {
+                            responsive: true,
+                            maintainAspectRatio: false,
+                            legend: { position: 'top' },
+                            scales: {
+                                yAxes: [{ ticks: { beginAtZero: true } }]
+                            }
+                        }
+                    });
+                }
+            }
         }
     });
 
