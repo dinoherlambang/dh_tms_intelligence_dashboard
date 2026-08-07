@@ -46,6 +46,7 @@ odoo.define('dh_tms_intelligence_dashboard.Dashboard', function (require) {
             'click .js_open_trailer_exchange': '_onOpenTrailerExchange',
             'click .js_drilldown_trailer_exchanges': '_onDrilldownTrailerExchanges',
             'click .js_open_billing_wizard': '_onOpenBillingWizard',
+            'click .js_open_asset_valuation_wizard': '_onOpenAssetValuationWizard',
         },
 
         init: function (parent, action) {
@@ -55,6 +56,7 @@ odoo.define('dh_tms_intelligence_dashboard.Dashboard', function (require) {
             this.trailer_coupling_summary = {};
             this.recent_trailer_exchanges = [];
             this.cpk_billing_summary = {};
+            this.asset_valuation_summary = { total_gross_str: 'Rp 0', total_depr_str: 'Rp 0', total_net_str: 'Rp 0', retention_pct: 0, as_of_date: '', hub_asset_data: [], status_asset_data: { mounted: 0, stock: 0, scrapped: 0 } };
             this.min_km_deficit_vehicles = [];
             this.alert_queue = [];
             this.rotation_recommendations = [];
@@ -99,6 +101,7 @@ odoo.define('dh_tms_intelligence_dashboard.Dashboard', function (require) {
                 self.trailer_coupling_summary = data.trailer_coupling_summary || {};
                 self.recent_trailer_exchanges = data.recent_trailer_exchanges || [];
                 self.cpk_billing_summary = data.cpk_billing_summary || {};
+                self.asset_valuation_summary = data.asset_valuation_summary || { total_gross_str: 'Rp 0', total_depr_str: 'Rp 0', total_net_str: 'Rp 0', retention_pct: 0, as_of_date: '', hub_asset_data: [], status_asset_data: { mounted: 0, stock: 0, scrapped: 0 } };
                 self.min_km_deficit_vehicles = data.min_km_deficit_vehicles || [];
                 self.alert_queue = data.alert_queue || [];
                 self.rotation_recommendations = data.rotation_recommendations || [];
@@ -158,12 +161,14 @@ odoo.define('dh_tms_intelligence_dashboard.Dashboard', function (require) {
             this._super.apply(this, arguments);
             this._renderLineChart();
             this._renderCPKBillingCharts();
+            this._renderAssetValuationCharts();
         },
 
         renderElement: function () {
             this._super.apply(this, arguments);
             this._renderLineChart();
             this._renderCPKBillingCharts();
+            this._renderAssetValuationCharts();
             this._restoreCheckboxStates();
         },
 
@@ -876,6 +881,106 @@ odoo.define('dh_tms_intelligence_dashboard.Dashboard', function (require) {
                 name: 'CPK Billing Recap Wizard',
                 type: 'ir.actions.act_window',
                 res_model: 'billing.recap.wizard',
+                views: [[false, 'form']],
+                target: 'new',
+                context: ctx,
+            });
+        },
+
+        _renderAssetValuationCharts: function () {
+            var self = this;
+            var summary = (self.dashboard_data && self.dashboard_data.asset_valuation_summary) || {};
+            var hubData = summary.hub_asset_data || [];
+            var statusData = summary.status_asset_data || { mounted: 0, stock: 0, scrapped: 0 };
+
+            // 1. Left Stacked Bar Chart: Asset Valuation per Operating Hub
+            var canvas1 = this.$('#js_asset_hub_valuation_canvas')[0];
+            if (canvas1) {
+                var ctx1 = canvas1.getContext('2d');
+                var labels1 = hubData.map(function (h) { return h.name; });
+                var netData = hubData.map(function (h) { return h.net; });
+                var deprData = hubData.map(function (h) { return h.depr; });
+
+                if (!labels1.length) {
+                    labels1 = ['No Active Asset Data'];
+                    netData = [0];
+                    deprData = [0];
+                }
+
+                if (window.Chart) {
+                    if (self.asset_hub_chart) self.asset_hub_chart.destroy();
+                    self.asset_hub_chart = new window.Chart(ctx1, {
+                        type: 'bar',
+                        data: {
+                            labels: labels1,
+                            datasets: [
+                                {
+                                    label: 'Net Book Value (Rp)',
+                                    data: netData,
+                                    backgroundColor: '#28a745',
+                                },
+                                {
+                                    label: 'Accumulated Depreciation (Rp)',
+                                    data: deprData,
+                                    backgroundColor: '#fd7e14',
+                                }
+                            ]
+                        },
+                        options: {
+                            responsive: true,
+                            maintainAspectRatio: false,
+                            legend: { position: 'top' },
+                            scales: {
+                                xAxes: [{ stacked: true }],
+                                yAxes: [{ stacked: true, ticks: { beginAtZero: true } }]
+                            }
+                        }
+                    });
+                }
+            }
+
+            // 2. Right Doughnut Chart: Capital Asset Distribution by Status
+            var canvas2 = this.$('#js_asset_status_valuation_canvas')[0];
+            if (canvas2) {
+                var ctx2 = canvas2.getContext('2d');
+                var values2 = [
+                    statusData.mounted || 0,
+                    statusData.stock || 0,
+                    statusData.scrapped || 0
+                ];
+
+                if (window.Chart) {
+                    if (self.asset_status_chart) self.asset_status_chart.destroy();
+                    self.asset_status_chart = new window.Chart(ctx2, {
+                        type: 'doughnut',
+                        data: {
+                            labels: ['Mounted Fleet (Rp)', 'Depot Stock (Rp)', 'Scrapped/Afkir (Rp)'],
+                            datasets: [{
+                                data: values2,
+                                backgroundColor: ['#1e62d0', '#28a745', '#dc3545']
+                            }]
+                        },
+                        options: {
+                            responsive: true,
+                            maintainAspectRatio: false,
+                            legend: { position: 'bottom' }
+                        }
+                    });
+                }
+            }
+        },
+
+        _onOpenAssetValuationWizard: function (ev) {
+            ev.preventDefault();
+            var ctx = {};
+            if (this.selected_unit_id) {
+                ctx.default_operating_unit_ids = [[6, 0, [parseInt(this.selected_unit_id)]]];
+                ctx.default_all_operating_units = false;
+            }
+            this.do_action({
+                name: 'Tire Asset Valuation & Depreciation Wizard',
+                type: 'ir.actions.act_window',
+                res_model: 'tire.asset.valuation.wizard',
                 views: [[false, 'form']],
                 target: 'new',
                 context: ctx,

@@ -448,6 +448,84 @@ class DhTmsDashboard(models.TransientModel):
             rotated_tires = sum(t.rotation_count for t in tires)
             removed_tires = len(tires.filtered(lambda t: t.state in ('unmounted', 'retread', 'scrapped')))
 
+        # 8. Tire Asset Valuation & Financial Depreciation Query
+        asset_gross_total = 0.0
+        asset_depr_total = 0.0
+        asset_net_total = 0.0
+
+        hub_asset_data = []
+        status_asset_data = {
+            'mounted': 0.0,
+            'stock': 0.0,
+            'scrapped': 0.0
+        }
+
+        if 'dh.tire' in self.env:
+            tire_domain = []
+            if unit_id:
+                tire_domain = [
+                    '|',
+                    ('usage_ids.vehicle_id.location_id', '=', int(unit_id)),
+                    ('location_id', '=', int(unit_id))
+                ]
+
+            all_tires = self.env['dh.tire'].sudo().search(tire_domain)
+            
+            for t in all_tires:
+                gross = getattr(t, 'asset_gross_value', 0.0) or getattr(t.serial_number, 'asset_gross_value', 0.0) or (getattr(t, 'tire_price', 0.0) or 0.0)
+                depr = getattr(t, 'accumulated_depreciation', 0.0) or getattr(t.serial_number, 'accumulated_depreciation', 0.0)
+                net = getattr(t, 'asset_net_value', 0.0) or getattr(t.serial_number, 'asset_net_value', 0.0)
+                if net == 0.0 and gross > 0:
+                    net = max(0.0, gross - depr)
+
+                asset_gross_total += gross
+                asset_depr_total += depr
+                asset_net_total += net
+
+                state_val = t.state or 'mounted'
+                if state_val == 'mounted':
+                    status_asset_data['mounted'] += net
+                elif state_val in ('new', 'unmounted', 'retread'):
+                    status_asset_data['stock'] += net
+                else:
+                    status_asset_data['scrapped'] += net
+
+            # Group per operating unit
+            ou_map = {}
+            if 'operating.unit' in self.env:
+                ous = self.env['operating.unit'].search([('id', '=', int(unit_id))] if unit_id else [])
+                for ou in ous:
+                    ou_map[ou.name] = {'gross': 0.0, 'depr': 0.0, 'net': 0.0}
+
+                for t in all_tires:
+                    cur_u = t.usage_ids.filtered(lambda u: not u.removal_date)
+                    veh = cur_u[0].vehicle_id if cur_u else False
+                    ou_name = veh.location_id.name if veh and veh.location_id else (t.location_id.name if hasattr(t, 'location_id') and t.location_id else 'Depot Stock')
+
+                    if ou_name not in ou_map:
+                        ou_map[ou_name] = {'gross': 0.0, 'depr': 0.0, 'net': 0.0}
+
+                    gross = getattr(t, 'asset_gross_value', 0.0) or getattr(t.serial_number, 'asset_gross_value', 0.0) or (getattr(t, 'tire_price', 0.0) or 0.0)
+                    depr = getattr(t, 'accumulated_depreciation', 0.0) or getattr(t.serial_number, 'accumulated_depreciation', 0.0)
+                    net = getattr(t, 'asset_net_value', 0.0) or getattr(t.serial_number, 'asset_net_value', 0.0)
+                    if net == 0.0 and gross > 0:
+                        net = max(0.0, gross - depr)
+
+                    ou_map[ou_name]['gross'] += gross
+                    ou_map[ou_name]['depr'] += depr
+                    ou_map[ou_name]['net'] += net
+
+                for name, d in sorted(ou_map.items()):
+                    if d['gross'] > 0 or d['net'] > 0:
+                        hub_asset_data.append({
+                            'name': name,
+                            'gross': round(d['gross'], 2),
+                            'depr': round(d['depr'], 2),
+                            'net': round(d['net'], 2),
+                        })
+
+        asset_retention_pct = round((asset_net_total / asset_gross_total * 100), 1) if asset_gross_total > 0 else 0.0
+
         return {
             'filters': {
                 'operating_units': operating_units,
@@ -496,6 +574,22 @@ class DhTmsDashboard(models.TransientModel):
                 'periode_str': f"{date_from.strftime('%d %b')} - {date_to.strftime('%d %b %Y')}",
                 'hub_chart_data': hub_chart_data,
                 'utilization_status': utilization_status,
+            },
+            'asset_valuation_summary': {
+                'total_gross': round(asset_gross_total, 2),
+                'total_gross_str': f"Rp {round(asset_gross_total, 0):,.0f}" if asset_gross_total > 0 else "Rp 0",
+                'total_depr': round(asset_depr_total, 2),
+                'total_depr_str': f"Rp {round(asset_depr_total, 0):,.0f}" if asset_depr_total > 0 else "Rp 0",
+                'total_net': round(asset_net_total, 2),
+                'total_net_str': f"Rp {round(asset_net_total, 0):,.0f}" if asset_net_total > 0 else "Rp 0",
+                'retention_pct': asset_retention_pct,
+                'as_of_date': fields.Date.today().strftime('%d %b %Y'),
+                'hub_asset_data': hub_asset_data,
+                'status_asset_data': {
+                    'mounted': round(status_asset_data['mounted'], 2),
+                    'stock': round(status_asset_data['stock'], 2),
+                    'scrapped': round(status_asset_data['scrapped'], 2),
+                },
             },
             'min_km_deficit_vehicles': min_km_deficit_vehicles,
             'recent_trailer_exchanges': recent_trailer_exchanges,

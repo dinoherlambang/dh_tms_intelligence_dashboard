@@ -186,22 +186,22 @@
                             <div class="chart-title-header mt-2 pt-1 border-top d-flex justify-content-between align-items-center">
                                 <h5 class="m-0" style="font-size: 12px; font-weight: 700; color: #1e62d0;">
                                     <t t-if="widget.active_chart_tab == 'mileage'">
-                                        🛣️ Cumulative KM Mileage Telemetry Trend Chart
+                                        🛣️ Grafik Akumulasi Jarak Tempuh Armada (KM Mileage Telemetry)
                                     </t>
                                     <t t-elif="widget.active_chart_tab == 'wear_pct'">
-                                        ⚠️ Tire Wear Percentage (%) Degradation Trend Chart
+                                        ⚠️ Grafik Persentase Degradasi Keausan Ban (Tire Wear %)
                                     </t>
                                     <t t-elif="widget.active_chart_tab == 'efficiency'">
-                                        ⚡ Kilometers Per Millimeter (KM / mm) Wear Efficiency Trend Chart
+                                        ⚡ Grafik Efisiensi Daya Tahan Ban (KM / mm Wear Efficiency)
                                     </t>
                                     <t t-elif="widget.active_chart_tab == 'psi'">
-                                        🎈 Tire Inflation Pressure (PSI) Telemetry Trend Chart
+                                        🎈 Grafik Pemantauan Tekanan Angin Ban (PSI Inflation Telemetry)
                                     </t>
                                     <t t-elif="widget.active_chart_tab == 'cpk'">
-                                        💰 Estimated Cost Per Kilometer (Est. CPK Rp/KM) Trend Chart
+                                        💰 Grafik Proyeksi Biaya Operasional per KM (Est. CPK Rp/KM)
                                     </t>
                                     <t t-else="">
-                                        📉 Remaining Tread Depth (RTD mm) Telemetry Trend Chart
+                                        📉 Grafik Tren Ketebalan Alur Ban (Remaining Tread Depth - RTD mm)
                                     </t>
                                 </h5>
                                 <span class="badge badge-light text-muted" style="font-size: 10px;">Line &amp; Marker Analytics</span>
@@ -210,22 +210,22 @@
                                 <i class="fa fa-info-circle text-primary mr-1"/>
                                 <span class="js_chart_description_text">
                                     <t t-if="widget.active_chart_tab == 'mileage'">
-                                        <strong>KM Mileage:</strong> Plots cumulative distance traveled (KM) recorded during fleet inspections. Used to analyze tire mileage accumulation across vehicles and brands over time.
+                                        <strong>Jarak Tempuh (KM Mileage):</strong> Menampilkan akumulasi total jarak tempuh (KM) kendaraan saat dilakukan inspeksi ban. Digunakan untuk menganalisis tingkat pemakaian dan daya tahan ban per unit armada dari waktu ke waktu.
                                     </t>
                                     <t t-elif="widget.active_chart_tab == 'wear_pct'">
-                                        <strong>Tire Wear Percentage (%):</strong> Displays tire tread consumption percentage. Yellow line (50%) signals mid-life rotation review; Red line (80%) highlights critical wear requiring immediate retread or replacement planning.
+                                        <strong>Persentase Keausan Ban (%):</strong> Mengukur persentase konsumsi alur ban dari kondisi baru hingga aus. Garis kuning (<strong>50%</strong>) merupakan evaluasi pertengahan umur untuk rotasi ban, sedangkan garis merah (<strong>80%</strong>) menandakan batas kritis jadwal kanisir atau penggantian ban.
                                     </t>
                                     <t t-elif="widget.active_chart_tab == 'efficiency'">
-                                        <strong>KM / mm Wear Efficiency:</strong> Measures distance traveled per 1.0 mm of tread wear (KM / mm). Higher values indicate superior tire durability, proper wheel alignment, and optimal driving efficiency.
+                                        <strong>Efisiensi Pemakaian (KM / mm):</strong> Mengukur rasio jarak tempuh yang dicapai per 1.0 mm keausan alur ban. Semakin tinggi nilai KM/mm, semakin awet kualitas ban, presisi spooring/wheel alignment, dan efisiensi pengoperasian armada.
                                     </t>
                                     <t t-elif="widget.active_chart_tab == 'psi'">
-                                        <strong>Inflation Pressure (PSI):</strong> Monitors cold inflation pressure in PSI. Green dashed line marks standard target pressure (110 PSI); Red line marks dangerous under-inflation hazard limit (90 PSI).
+                                        <strong>Tekanan Angin Ban (PSI):</strong> Memantau tekanan angin ban saat kondisi dingin dalam satuan PSI. Garis hijau menandakan <strong>tekanan standar (110 PSI)</strong>, sedangkan garis merah menandakan <strong>bahaya tekanan kurang (&lt; 90 PSI)</strong> yang berisiko menyebabkan aus tidak merata atau ledakan ban.
                                     </t>
                                     <t t-elif="widget.active_chart_tab == 'cpk'">
-                                        <strong>Est. Cost per KM (Rp):</strong> Tracks calculated cost per kilometer (Rp/KM) based on initial tire purchase cost divided by projected total mileage. Helps optimize procurement and brand selection.
+                                        <strong>Biaya per KM (Est. CPK Rp/KM):</strong> Menghitung perkiraan biaya operasional per kilometer (Rp/KM) berdasarkan harga beli ban dibagi proyeksi total umur pemakaian. Membantu optimasi pengadaan barang dan pemilihan merek ban terbaik.
                                     </t>
                                     <t t-else="">
-                                        <strong>Remaining Tread Depth (mm):</strong> Tracks physical tread depth (mm) over time. Red dashed line indicates the 3.0 mm minimum safety threshold; Green line marks 18.0 mm new tire baseline.
+                                        <strong>Ketebalan Alur Ban (RTD mm):</strong> Memantau sisa ketebalan alur ban (mm) secara berkala. Garis putus-putus merah menandakan <strong>batas minimum keselamatan (3.0 mm)</strong> untuk rotasi/penggantian ban, sedangkan garis hijau menandakan <strong>standar ban baru (18.0 mm)</strong>.
                                     </t>
                                 </span>
                             </div>
@@ -449,6 +449,56 @@
                 </div>
             </div>
 
+            <!-- Trailer Coupling & Exchange Telemetry Panel -->
+            <div class="dashboard-panel mb-4">
+                <div class="panel-header">
+                    <h3><i class="fa fa-truck mr-2"/>Trailer Exchange &amp; Fleet Coupling Telemetry</h3>
+                    <button class="btn btn-link btn-sm js_drilldown_trailer_exchanges">View All Exchanges &gt;</button>
+                </div>
+
+                <!-- Coupling Metric Badges -->
+                <div class="coupling-metrics-grid mb-3" style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 14px;">
+                    <div class="coupling-card text-center p-3" style="background: #eef4ff; border-radius: 8px; border-left: 4px solid #1e62d0;">
+                        <div style="font-size: 11px; font-weight: 700; color: #6c757d; text-transform: uppercase;">Head Units (Prime Movers)</div>
+                        <div style="font-size: 22px; font-weight: 800; color: #1e62d0;"><t t-esc="widget.trailer_coupling_summary.total_heads"/></div>
+                    </div>
+                    <div class="coupling-card text-center p-3" style="background: #e8f8ec; border-radius: 8px; border-left: 4px solid #28a745;">
+                        <div style="font-size: 11px; font-weight: 700; color: #6c757d; text-transform: uppercase;">Connected Trailers</div>
+                        <div style="font-size: 22px; font-weight: 800; color: #28a745;">
+                            <t t-esc="widget.trailer_coupling_summary.connected_trailers"/> / <t t-esc="widget.trailer_coupling_summary.total_trailers"/>
+                            <small style="font-size: 12px; font-weight: 600;">(<t t-esc="widget.trailer_coupling_summary.coupling_pct"/>%)</small>
+                        </div>
+                    </div>
+                    <div class="coupling-card text-center p-3" style="background: #fff8e6; border-radius: 8px; border-left: 4px solid #ffc107;">
+                        <div style="font-size: 11px; font-weight: 700; color: #6c757d; text-transform: uppercase;">Uncoupled Idle Trailers</div>
+                        <div style="font-size: 22px; font-weight: 800; color: #d97706;"><t t-esc="widget.trailer_coupling_summary.uncoupled_trailers"/></div>
+                    </div>
+                </div>
+
+                <!-- Recent Trailer Exchange Feed -->
+                <h4 style="font-size: 14px; font-weight: 700; color: #495057; margin-bottom: 10px;">Recent Trailer Exchange Log Activity</h4>
+                <div class="alert-queue-list" style="max-height: 240px;">
+                    <t t-if="widget.recent_trailer_exchanges &amp;&amp; widget.recent_trailer_exchanges.length">
+                        <t t-foreach="widget.recent_trailer_exchanges" t-as="ex">
+                            <div class="alert-item-card js_open_trailer_exchange" t-att-data-exchange-id="ex.id" style="border-left-color: #1e62d0; background-color: #f0f4fc; cursor: pointer;">
+                                <div class="alert-title-row">
+                                    <span><i class="fa fa-exchange mr-1"/><t t-esc="ex.name"/> — <t t-esc="ex.head_name"/></span>
+                                    <span class="badge badge-info"><t t-esc="ex.state.toUpperCase()"/></span>
+                                </div>
+                                <p class="alert-msg">
+                                    Swapped: <span class="text-muted"><t t-esc="ex.previous_trailer"/></span> &amp;rarr; <strong><t t-esc="ex.new_trailer"/></strong> | Odo: <strong><t t-esc="ex.odometer ? ex.odometer.toLocaleString() : '0'"/> km</strong> | Hub: <t t-esc="ex.location"/>
+                                </p>
+                            </div>
+                        </t>
+                    </t>
+                    <t t-else="">
+                        <div class="p-3 text-center text-muted" style="background-color: #f8f9fa; border-radius: 6px;">
+                            <i class="fa fa-info-circle mr-1"/> No recent trailer exchange logs recorded.
+                        </div>
+                    </t>
+                </div>
+            </div>
+
             <!-- CPK Billing Projections & Min-KM Floor Deficit Panel -->
             <div class="dashboard-panel mb-4">
                 <div class="panel-header" style="flex-wrap: wrap; gap: 10px;">
@@ -507,7 +557,7 @@
                             </div>
                             <div class="chart-description-banner mt-2 p-2" style="background: #f0f4fc; border-left: 4px solid #1e62d0; border-radius: 4px; font-size: 11px; color: #2c3e50;">
                                 <i class="fa fa-info-circle text-primary mr-1"/>
-                                <strong>Hub Billing Breakdown:</strong> Compares <strong>Base Billing</strong> <em>(Actual KM × CPK Rate × Mounted Tires)</em> against <strong>Shortfall Recovery</strong> <em>(Adjustment revenue for vehicles operating below 2,500 KM minimum threshold)</em> for each active CPK Operating Unit.
+                                <strong>Rincian Tagihan CPK Unit Operasional:</strong> Membandingkan <strong>Tagihan Utama Jarak Tempuh</strong> <em>(KM Tempuh Aktual × Tarif CPK × Jumlah Ban Dipasang)</em> dengan <strong>Tagihan Selisih Minimum KM</strong> <em>(Penyesuaian pendapatan untuk armada dengan jarak tempuh di bawah batas minimum 2.500 KM/bulan)</em> pada setiap Unit Operasional.
                             </div>
                         </div>
                     </div>
@@ -531,60 +581,99 @@
                             </div>
                             <div class="chart-description-banner mt-2 p-2" style="background: #f0f4fc; border-left: 4px solid #1e62d0; border-radius: 4px; font-size: 11px; color: #2c3e50;">
                                 <i class="fa fa-info-circle text-primary mr-1"/>
-                                <strong>Mileage Performance Compliance:</strong> Categorizes fleet vehicles by monthly distance compliance: <strong>Target Met</strong> <em>(≥ 2,500 KM)</em>, <strong>Near Target</strong> <em>(2,000–2,499 KM)</em>, and <strong>Shortfall Deficit</strong> <em>(&lt; 2,000 KM)</em>.
+                                <strong>Kepatuhan Minimum Jarak Tempuh Armada:</strong> Mengelompokkan armada berdasarkan kepatuhan target kilometer bulanan: <strong>Memenuhi Target</strong> <em>(≥ 2.500 KM)</em>, <strong>Mendekati Target</strong> <em>(2.000–2.499 KM)</em>, dan <strong>Selisih Defisit</strong> <em>(&lt; 2.000 KM)</em>.
                             </div>
                         </div>
                     </div>
                 </div>
             </div>
 
-            <!-- Trailer Coupling & Exchange Telemetry Panel -->
+            <!-- Tire Asset Valuation & Financial Depreciation Panel (Positioned at Very Bottom) -->
             <div class="dashboard-panel mb-4">
-                <div class="panel-header">
-                    <h3><i class="fa fa-truck mr-2"/>Trailer Exchange &amp; Fleet Coupling Telemetry</h3>
-                    <button class="btn btn-link btn-sm js_drilldown_trailer_exchanges">View All Exchanges &gt;</button>
+                <div class="panel-header" style="flex-wrap: wrap; gap: 10px;">
+                    <h3>
+                        <i class="fa fa-calculator mr-2"/>Tire Asset Valuation &amp; Financial Depreciation Analytics
+                    </h3>
+                    <div style="display: flex; align-items: center; gap: 10px;">
+                        <span class="badge badge-info">As of: <t t-esc="widget.asset_valuation_summary &amp;&amp; widget.asset_valuation_summary.as_of_date ? widget.asset_valuation_summary.as_of_date : ''"/></span>
+                        <button class="btn btn-primary btn-sm js_open_asset_valuation_wizard">
+                            <i class="fa fa-file-excel-o mr-1"/> Generate Tire Asset Valuation Wizard
+                        </button>
+                    </div>
                 </div>
 
-                <!-- Coupling Metric Badges -->
-                <div class="coupling-metrics-grid mb-3" style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 14px;">
+                <!-- 4 Financial Asset Badges -->
+                <div class="financial-metrics-grid mb-3" style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 14px;">
                     <div class="coupling-card text-center p-3" style="background: #eef4ff; border-radius: 8px; border-left: 4px solid #1e62d0;">
-                        <div style="font-size: 11px; font-weight: 700; color: #6c757d; text-transform: uppercase;">Head Units (Prime Movers)</div>
-                        <div style="font-size: 22px; font-weight: 800; color: #1e62d0;"><t t-esc="widget.trailer_coupling_summary.total_heads"/></div>
+                        <div style="font-size: 11px; font-weight: 700; color: #6c757d; text-transform: uppercase;">Gross Asset Value (Gross)</div>
+                        <div style="font-size: 20px; font-weight: 800; color: #1e62d0;"><t t-esc="widget.asset_valuation_summary &amp;&amp; widget.asset_valuation_summary.total_gross_str ? widget.asset_valuation_summary.total_gross_str : 'Rp 0'"/></div>
+                        <div style="font-size: 11px; color: #6c757d; margin-top: 2px;">Total Harga Perolehan Ban</div>
+                    </div>
+                    <div class="coupling-card text-center p-3" style="background: #fffdf2; border-radius: 8px; border-left: 4px solid #fd7e14;">
+                        <div style="font-size: 11px; font-weight: 700; color: #6c757d; text-transform: uppercase;">Accumulated Depreciation</div>
+                        <div style="font-size: 20px; font-weight: 800; color: #d97706;"><t t-esc="widget.asset_valuation_summary &amp;&amp; widget.asset_valuation_summary.total_depr_str ? widget.asset_valuation_summary.total_depr_str : 'Rp 0'"/></div>
+                        <div style="font-size: 11px; color: #6c757d; margin-top: 2px;">Akumulasi Penyusutan Aus Ban</div>
                     </div>
                     <div class="coupling-card text-center p-3" style="background: #e8f8ec; border-radius: 8px; border-left: 4px solid #28a745;">
-                        <div style="font-size: 11px; font-weight: 700; color: #6c757d; text-transform: uppercase;">Connected Trailers</div>
-                        <div style="font-size: 22px; font-weight: 800; color: #28a745;">
-                            <t t-esc="widget.trailer_coupling_summary.connected_trailers"/> / <t t-esc="widget.trailer_coupling_summary.total_trailers"/>
-                            <small style="font-size: 12px; font-weight: 600;">(<t t-esc="widget.trailer_coupling_summary.coupling_pct"/>%)</small>
-                        </div>
+                        <div style="font-size: 11px; font-weight: 700; color: #6c757d; text-transform: uppercase;">Net Asset Value (NBV)</div>
+                        <div style="font-size: 20px; font-weight: 800; color: #28a745;"><t t-esc="widget.asset_valuation_summary &amp;&amp; widget.asset_valuation_summary.total_net_str ? widget.asset_valuation_summary.total_net_str : 'Rp 0'"/></div>
+                        <div style="font-size: 11px; color: #6c757d; margin-top: 2px;">Nilai Buku Bersih Aset Ban</div>
                     </div>
-                    <div class="coupling-card text-center p-3" style="background: #fff8e6; border-radius: 8px; border-left: 4px solid #ffc107;">
-                        <div style="font-size: 11px; font-weight: 700; color: #6c757d; text-transform: uppercase;">Uncoupled Idle Trailers</div>
-                        <div style="font-size: 22px; font-weight: 800; color: #d97706;"><t t-esc="widget.trailer_coupling_summary.uncoupled_trailers"/></div>
+                    <div class="coupling-card text-center p-3" style="background: #f4f0ff; border-radius: 8px; border-left: 4px solid #6f42c1;">
+                        <div style="font-size: 11px; font-weight: 700; color: #6c757d; text-transform: uppercase;">Asset Health Ratio</div>
+                        <div style="font-size: 20px; font-weight: 800; color: #6f42c1;"><t t-esc="widget.asset_valuation_summary &amp;&amp; widget.asset_valuation_summary.retention_pct ? widget.asset_valuation_summary.retention_pct : 0"/>%</div>
+                        <div style="font-size: 11px; color: #6c757d; margin-top: 2px;">Sisa Nilai Efektif Aset (%)</div>
                     </div>
                 </div>
 
-                <!-- Recent Trailer Exchange Feed -->
-                <h4 style="font-size: 14px; font-weight: 700; color: #495057; margin-bottom: 10px;">Recent Trailer Exchange Log Activity</h4>
-                <div class="alert-queue-list" style="max-height: 240px;">
-                    <t t-if="widget.recent_trailer_exchanges &amp;&amp; widget.recent_trailer_exchanges.length">
-                        <t t-foreach="widget.recent_trailer_exchanges" t-as="ex">
-                            <div class="alert-item-card js_open_trailer_exchange" t-att-data-exchange-id="ex.id" style="border-left-color: #1e62d0; background-color: #f0f4fc; cursor: pointer;">
-                                <div class="alert-title-row">
-                                    <span><i class="fa fa-exchange mr-1"/><t t-esc="ex.name"/> — <t t-esc="ex.head_name"/></span>
-                                    <span class="badge badge-info"><t t-esc="ex.state.toUpperCase()"/></span>
-                                </div>
-                                <p class="alert-msg">
-                                    Swapped: <span class="text-muted"><t t-esc="ex.previous_trailer"/></span> &amp;rarr; <strong><t t-esc="ex.new_trailer"/></strong> | Odo: <strong><t t-esc="ex.odometer ? ex.odometer.toLocaleString() : '0'"/> km</strong> | Hub: <t t-esc="ex.location"/>
-                                </p>
+                <!-- 2-Column Asset Valuation Charts Section -->
+                <div class="row mt-3">
+                    <!-- Left Chart: Asset Valuation per Operating Unit (Stacked Bar) -->
+                    <div class="col-md-7 col-12 mb-3 mb-md-0">
+                        <div class="p-3" style="background: #ffffff; border: 1px solid #e9ecef; border-radius: 8px;">
+                            <div class="d-flex justify-content-between align-items-center mb-2 pb-1 border-bottom">
+                                <strong style="font-size: 12px; font-weight: 700; color: #1e62d0;">
+                                    <i class="fa fa-bar-chart mr-1"/> Asset Valuation per Operating Hub (Gross vs Net Book Value)
+                                </strong>
+                                <span class="badge badge-light text-muted" style="font-size: 10px;">Asset Valuation (Rp)</span>
                             </div>
-                        </t>
-                    </t>
-                    <t t-else="">
-                        <div class="p-3 text-center text-muted" style="background-color: #f8f9fa; border-radius: 6px;">
-                            <i class="fa fa-info-circle mr-1"/> No recent trailer exchange logs recorded.
+                            <div class="d-flex align-items-center mb-2" style="gap: 12px; font-size: 11px; font-weight: 600;">
+                                <span style="color: #28a745;"><i class="fa fa-square mr-1" style="color: #28a745;"/> Net Book Value (Rp)</span>
+                                <span style="color: #fd7e14;"><i class="fa fa-square mr-1" style="color: #fd7e14;"/> Accumulated Depreciation (Rp)</span>
+                            </div>
+                            <div style="position: relative; width: 100%; height: 190px;">
+                                <canvas id="js_asset_hub_valuation_canvas" style="width: 100%; height: 100%;"></canvas>
+                            </div>
+                            <div class="chart-description-banner mt-2 p-2" style="background: #f0f4fc; border-left: 4px solid #1e62d0; border-radius: 4px; font-size: 11px; color: #2c3e50;">
+                                <i class="fa fa-info-circle text-primary mr-1"/>
+                                <strong>Valuasi Aset per Operating Unit:</strong> Membandingkan <strong>Nilai Buku Bersih (NBV)</strong> dengan <strong>Akumulasi Penyusutan</strong> aset ban berdasarkan keausan alur fisik (RTD) pada setiap lokasi Operating Unit.
+                            </div>
                         </div>
-                    </t>
+                    </div>
+
+                    <!-- Right Chart: Asset Value Distribution by Status -->
+                    <div class="col-md-5 col-12">
+                        <div class="p-3" style="background: #ffffff; border: 1px solid #e9ecef; border-radius: 8px;">
+                            <div class="d-flex justify-content-between align-items-center mb-2 pb-1 border-bottom">
+                                <strong style="font-size: 12px; font-weight: 700; color: #1e62d0;">
+                                    <i class="fa fa-pie-chart mr-1"/> Capital Asset Distribution by Tire Status
+                                </strong>
+                                <span class="badge badge-light text-muted" style="font-size: 10px;">Status Capital (Rp)</span>
+                            </div>
+                            <div class="d-flex align-items-center mb-2 flex-wrap" style="gap: 10px; font-size: 11px; font-weight: 600;">
+                                <span style="color: #1e62d0;"><i class="fa fa-circle mr-1" style="color: #1e62d0;"/> Mounted Fleet</span>
+                                <span style="color: #28a745;"><i class="fa fa-circle mr-1" style="color: #28a745;"/> Depot Stock</span>
+                                <span style="color: #dc3545;"><i class="fa fa-circle mr-1" style="color: #dc3545;"/> Scrapped/Afkir</span>
+                            </div>
+                            <div style="position: relative; width: 100%; height: 190px;">
+                                <canvas id="js_asset_status_valuation_canvas" style="width: 100%; height: 100%;"></canvas>
+                            </div>
+                            <div class="chart-description-banner mt-2 p-2" style="background: #f0f4fc; border-left: 4px solid #1e62d0; border-radius: 4px; font-size: 11px; color: #2c3e50;">
+                                <i class="fa fa-info-circle text-primary mr-1"/>
+                                <strong>Alokasi Modal Aset Ban:</strong> Menampilkan distribusi kapital nilai aset ban yang sedang terpasang di armada jalan (<strong>Mounted</strong>) dibandingkan ban cadangan siap pakai di gudang depot (<strong>Depot Stock</strong>).
+                            </div>
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>
