@@ -382,6 +382,8 @@ class DhTmsDashboard(models.TransientModel):
                 'wear_percentage': m.wear_percentage or 0.0,
                 'psi_monitoring': m.psi_monitoring or 0.0,
                 'km_per_mm': m.km_per_mm or 0.0,
+                'price_per_mm': getattr(m, 'price_per_mm', 0.0) or 0.0,
+                'current_asset_value': getattr(m, 'current_asset_value', 0.0) or 0.0,
                 'est_cpk': m.est_cpk or 0.0,
                 'notes': m.monitor_notes or '',
             })
